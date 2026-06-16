@@ -104,13 +104,25 @@ fun PianoKeyboard(
                             val event = awaitPointerEvent()
                             for (pointer in event.changes) {
                                 val pid = pointer.id.value.toInt()
+                                // Read live state, not the snapshot val captured at compose time
+                                val liveOffset = when {
+                                    isDragging -> dragOffset
+                                    isAnimating -> scrollAnim.value
+                                    else -> 0f
+                                }
+                                fun liveExtra(): Int {
+                                    val off = abs(liveOffset)
+                                    val ow = octW()
+                                    return if (ow > 0f && off > 1f) maxOf(1, (off / ow).toInt() + 1)
+                                    else if (isDragging || isAnimating) 1 else 0
+                                }
                                 when {
                                     pointer.pressed && !pointer.previousPressed -> {
                                         if (!isDragging && !isAnimating) dragOffset = 0f
                                         hitTest(
-                                            pointer.position.x - displayOffset, pointer.position.y,
+                                            pointer.position.x - liveOffset, pointer.position.y,
                                             size.width.toFloat(), size.height.toFloat(),
-                                            state, extraOctaves()
+                                            state, liveExtra()
                                         )?.let { pointerToNote[pid] = it; onNoteOn(it) }
                                     }
                                     pointer.pressed && pointer.previousPressed -> {
@@ -118,9 +130,9 @@ fun PianoKeyboard(
                                         when (state.slideMode) {
                                             SlideMode.FOLLOW_KEYS -> {
                                                 val cur = hitTest(
-                                                    pointer.position.x - displayOffset, pointer.position.y,
+                                                    pointer.position.x - liveOffset, pointer.position.y,
                                                     size.width.toFloat(), size.height.toFloat(),
-                                                    state, extraOctaves()
+                                                    state, liveExtra()
                                                 )
                                                 if (cur != null && cur != prev) {
                                                     onNoteSlide(prev, cur); pointerToNote[pid] = cur
