@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import me.doubao.oscillochord.domain.audio.Oscillator
 import me.doubao.oscillochord.domain.audio.Waveform
+import kotlin.math.sqrt
 import me.doubao.oscillochord.domain.lissajous.LissajousProjector
 
 data class TrailPoint(val x: Float, val y: Float)
@@ -55,17 +56,20 @@ class OscilloscopeViewModel : ViewModel() {
         }
 
         val oscs = active.map { it.second }
+        val n = oscs.size
+        // Normalization: for N≥3, projection sum can exceed [-1,1]; divide by √N
+        val norm = if (n >= 3) 1.0f / sqrt(n.toFloat()) else 1.0f
         val points = _state.value.trailPoints.toMutableList()
 
         for (i in 0 until SAMPLES_PER_FRAME) {
-            val raw = FloatArray(oscs.size) { j -> oscs[j].nextSample() }
+            val raw = FloatArray(n) { j -> oscs[j].nextSample() }
 
-            val projected = if (raw.size == 1) {
-                // N=1: waveform display — x = time ramp, y = amplitude
+            val projected = if (n == 1) {
                 val ramp = (i.toFloat() / SAMPLES_PER_FRAME) * 2f - 1f
                 ramp to raw[0]
             } else {
-                projector.project(raw)
+                val (px, py) = projector.project(raw)
+                (px * norm) to (py * norm)
             }
 
             points.add(TrailPoint(projected.first, projected.second))

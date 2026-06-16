@@ -4,33 +4,25 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import java.util.concurrent.ConcurrentHashMap
 
 class AudioEngine {
     val sampleRate = 44100
     private val bufferSize: Int by lazy {
         try {
+            // Use 2x the minimum buffer to avoid underruns and clicks
             AudioTrack.getMinBufferSize(
-                sampleRate,
-                AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT
-            )
-        } catch (e: RuntimeException) {
-            // Running in unit test environment without Android runtime
-            4096
-        }
+                sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT
+            ) * 2
+        } catch (e: RuntimeException) { 4096 }
     }
 
     private var audioTrack: AudioTrack? = null
-    private val oscillators = mutableMapOf<Int, Oscillator>()
+    private val oscillators = ConcurrentHashMap<Int, Oscillator>()
     private var job: Job? = null
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var baseFrequency = 440.0
     private var waveform = Waveform.SINE
-
-    private val _sampleSnapshot = MutableSharedFlow<Map<Int, Float>>(replay = 0)
-    val sampleSnapshot: SharedFlow<Map<Int, Float>> = _sampleSnapshot
 
     fun setBaseFrequency(hz: Double) {
         baseFrequency = hz
@@ -45,23 +37,15 @@ class AudioEngine {
     fun noteOn(midiNote: Int) {
         if (oscillators.containsKey(midiNote)) return
         oscillators[midiNote] = Oscillator(
-            midiNote = midiNote,
-            baseFrequency = baseFrequency,
-            waveform = waveform
+            midiNote = midiNote, baseFrequency = baseFrequency,
+            waveform = waveform, amplitude = 0.4f
         )
         ensurePlaying()
     }
 
     fun noteOff(midiNote: Int) {
         oscillators.remove(midiNote)
-        if (oscillators.isEmpty()) {
-            stop()
-        }
-    }
-
-    fun allNotesOff() {
-        oscillators.clear()
-        stop()
+        if (oscillators.isEmpty()) stop()
     }
 
     private fun ensurePlaying() {
@@ -72,67 +56,47 @@ class AudioEngine {
     private fun start() {
         try {
             audioTrack = AudioTrack.Builder()
-                .setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .build()
-                )
-                .setAudioFormat(
-                    AudioFormat.Builder()
-                        .setSampleRate(sampleRate)
-                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                        .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                        .build()
-                )
-                .setBufferSizeInBytes(bufferSize)
-                .build()
-
+                .setAudioAttributes(AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
+                .setAudioFormat(AudioFormat.Builder()
+                    .setSampleRate(sampleRate).setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build())
+                .setBufferSizeInBytes(bufferSize).build()
             audioTrack?.play()
         } catch (e: RuntimeException) {
-            // Unit test environment: no Android audio runtime available
-            audioTrack = null
-            return
+            audioTrack = null; return
         }
+
         job = scope.launch {
-            val buffer = ShortArray(bufferSize / 2)
+            val bufSize = bufferSize / 2
+            val buffer = ShortArray(bufSize)
             while (isActive) {
-                val active = oscillators.toMap()
+                val active = HashMap(oscillators)
                 if (active.isEmpty()) break
 
                 for (i in buffer.indices) {
                     var sum = 0.0f
-                    for ((_, osc) in active) {
+                    for (osc in active.values) {
                         sum += osc.nextSample()
                     }
-                    // Normalize to prevent clipping
-                    sum /= active.size.coerceAtLeast(1)
-                    buffer[i] = (sum * Short.MAX_VALUE).toInt()
-                        .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
-                        .toShort()
+                    // Fixed small per-oscillator amplitude; let the sum clip naturally.
+                    // This avoids the volume-jump clicks from normalizing by count.
+                    val clipped = sum.coerceIn(-0.95f, 0.95f)
+                    buffer[i] = (clipped * Short.MAX_VALUE).toInt().toShort()
                 }
                 audioTrack?.write(buffer, 0, buffer.size)
-
-                // Emit sample snapshot for oscilloscope
-                val snapshot = active.mapValues { (_, osc) -> osc.nextSample() }
-                _sampleSnapshot.emit(snapshot)
             }
         }
     }
 
     private fun stop() {
-        job?.cancel()
-        job = null
-        audioTrack?.stop()
-        audioTrack?.release()
+        job?.cancel(); job = null
+        audioTrack?.stop(); audioTrack?.release()
         audioTrack = null
     }
 
-    fun destroy() {
-        allNotesOff()
-        scope.cancel()
-    }
+    fun destroy() { oscillators.clear(); stop(); scope.cancel() }
 
     val activeNoteCount: Int get() = oscillators.size
-    val activeNotes: Set<Int> get() = oscillators.keys.toSet()
 }

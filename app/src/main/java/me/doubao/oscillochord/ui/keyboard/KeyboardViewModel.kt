@@ -101,8 +101,6 @@ class KeyboardViewModel : ViewModel() {
         audioEngine.noteOff(midiNote)
     }
 
-    val sampleSnapshot get() = audioEngine.sampleSnapshot
-
     override fun onCleared() {
         super.onCleared()
         audioEngine.destroy()
