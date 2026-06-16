@@ -31,4 +31,7 @@
     <string name="settings_view_mode">View mode</string>
     <string name="settings_view_square">Square</string>
     <string name="settings_view_wide">Wide</string>
+    <string name="settings_note_naming">Note naming</string>
+    <string name="settings_note_sharp">Sharp (♯)</string>
+    <string name="settings_note_flat">Flat (♭)</string>
 </resources>

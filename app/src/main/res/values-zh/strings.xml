@@ -29,6 +29,9 @@
     <string name="settings_trail_medium">中</string>
     <string name="settings_trail_long">长</string>
     <string name="settings_view_mode">视图模式</string>
-    <string name="settings_view_square">方形</string>
+    <string name="settings_view_square">方屏</string>
     <string name="settings_view_wide">宽屏</string>
+    <string name="settings_note_naming">音名标注</string>
+    <string name="settings_note_sharp">升号 (♯)</string>
+    <string name="settings_note_flat">降号 (♭)</string>
 </resources>

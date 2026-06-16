@@ -18,7 +18,8 @@ data class SettingsState(
     val tuningSystem: String = "EQUAL",
     val trailFadeEnabled: Boolean = true,
     val trailLength: Int = 4096,
-    val viewMode: String = "SQUARE"
+    val viewMode: String = "SQUARE",
+    val noteNaming: String = "SHARP"
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -40,7 +41,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     tuningSystem = prefs["tuning_system"] as? String ?: "EQUAL",
                     trailFadeEnabled = prefs["trail_fade_enabled"] as? Boolean ?: true,
                     trailLength = prefs["trail_length"] as? Int ?: 4096,
-                    viewMode = prefs["view_mode"] as? String ?: "SQUARE"
+                    viewMode = prefs["view_mode"] as? String ?: "SQUARE",
+                    noteNaming = prefs["note_naming"] as? String ?: "SHARP"
                 )
             }
         }
@@ -56,4 +58,5 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setTrailFadeEnabled(enabled: Boolean) { viewModelScope.launch { repository.setTrailFadeEnabled(enabled) } }
     fun setTrailLength(length: Int) { viewModelScope.launch { repository.setTrailLength(length) } }
     fun setViewMode(mode: String) { viewModelScope.launch { repository.setViewMode(mode) } }
+    fun setNoteNaming(naming: String) { viewModelScope.launch { repository.setNoteNaming(naming) } }
 }

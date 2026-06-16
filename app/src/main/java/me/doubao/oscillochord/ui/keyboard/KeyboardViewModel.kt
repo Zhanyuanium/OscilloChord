@@ -17,7 +17,8 @@ data class KeyboardState(
     val octaveCount: Int = 1,
     val blackKeyLayout: BlackKeyLayout = BlackKeyLayout.PIANO,
     val showNoteLabels: Boolean = true,
-    val slideMode: SlideMode = SlideMode.FOLLOW_KEYS
+    val slideMode: SlideMode = SlideMode.FOLLOW_KEYS,
+    val noteNaming: String = "SHARP"
 )
 
 class KeyboardViewModel : ViewModel() {
@@ -86,6 +87,10 @@ class KeyboardViewModel : ViewModel() {
 
     fun setTuningSystem(system: TuningSystem) {
         audioEngine.setTuningSystem(system)
+    }
+
+    fun setNoteNaming(naming: String) {
+        _state.value = _state.value.copy(noteNaming = naming)
     }
 
     // MIDI integration

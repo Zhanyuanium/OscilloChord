@@ -26,6 +26,7 @@ fun SettingsPanel(
     onTrailFadeChange: (Boolean) -> Unit,
     onTrailLengthChange: (Int) -> Unit,
     onViewModeChange: (String) -> Unit,
+    onNoteNamingChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -90,6 +91,22 @@ fun SettingsPanel(
                         modifier = Modifier.weight(1f))
                     Switch(checked = state.showNoteLabels,
                         onCheckedChange = onShowNoteLabelsChange)
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(stringResource(R.string.settings_note_naming), style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(4.dp))
+                val namingOptions = listOf(
+                    "SHARP" to stringResource(R.string.settings_note_sharp),
+                    "FLAT" to stringResource(R.string.settings_note_flat)
+                )
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    namingOptions.forEachIndexed { index, (key, label) ->
+                        SegmentedButton(
+                            shape = SegmentedButtonDefaults.itemShape(index, namingOptions.size),
+                            onClick = { onNoteNamingChange(key) },
+                            selected = state.noteNaming == key
+                        ) { Text(label, style = MaterialTheme.typography.bodySmall) }
+                    }
                 }
             }
         }

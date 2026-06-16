@@ -36,7 +36,8 @@ fun MainScreen(
 
     LaunchedEffect(keyboardState.activeNotes, settingsState.tuningSystem) {
         infoVM.updateNotes(keyboardState.activeNotes, settingsState.baseFrequency,
-            TuningSystem.valueOf(settingsState.tuningSystem))
+            TuningSystem.valueOf(settingsState.tuningSystem),
+            settingsState.noteNaming)
     }
 
     LaunchedEffect(settingsState.octaveCount) { keyboardVM.setOctaveCount(settingsState.octaveCount) }
@@ -50,6 +51,7 @@ fun MainScreen(
     LaunchedEffect(settingsState.waveform) { keyboardVM.setWaveform(Waveform.valueOf(settingsState.waveform)) }
     LaunchedEffect(settingsState.baseFrequency) { keyboardVM.setBaseFrequency(settingsState.baseFrequency) }
     LaunchedEffect(settingsState.tuningSystem) { keyboardVM.setTuningSystem(TuningSystem.valueOf(settingsState.tuningSystem)) }
+    LaunchedEffect(settingsState.noteNaming) { keyboardVM.setNoteNaming(settingsState.noteNaming) }
 
     val isWide = settingsState.viewMode == "WIDE"
 
@@ -79,6 +81,7 @@ fun MainScreen(
             onTrailFadeChange = { settingsVM.setTrailFadeEnabled(it) },
             onTrailLengthChange = { settingsVM.setTrailLength(it) },
             onViewModeChange = { settingsVM.setViewMode(it) },
+            onNoteNamingChange = { settingsVM.setNoteNaming(it) },
             modifier = Modifier.width(240.dp).fillMaxHeight()
         )
     }

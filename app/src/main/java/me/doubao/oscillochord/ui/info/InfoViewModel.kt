@@ -27,7 +27,7 @@ class InfoViewModel : ViewModel() {
     private val _state = MutableStateFlow(InfoPanelState())
     val state: StateFlow<InfoPanelState> = _state.asStateFlow()
 
-    fun updateNotes(activeNotes: Set<Int>, baseFrequency: Double = 440.0, tuningSystem: TuningSystem = TuningSystem.EQUAL) {
+    fun updateNotes(activeNotes: Set<Int>, baseFrequency: Double = 440.0, tuningSystem: TuningSystem = TuningSystem.EQUAL, noteNaming: String = "SHARP") {
         if (activeNotes.isEmpty()) {
             _state.value = InfoPanelState()
             return
@@ -47,7 +47,7 @@ class InfoViewModel : ViewModel() {
 
             NoteInfo(
                 midiNote = midi,
-                name = PitchUtils.midiNoteToName(midi),
+                name = PitchUtils.midiNoteToName(midi, noteNaming == "FLAT"),
                 frequencyHz = PitchUtils.midiNoteToFrequency(midi, baseFrequency, tuningSystem),
                 intervalFromRoot = interval,
                 isRoot = midi == rootNote
@@ -56,7 +56,7 @@ class InfoViewModel : ViewModel() {
 
         _state.value = InfoPanelState(
             chordAbbreviation = chordResult?.let { result ->
-                val rootName = PitchUtils.midiNoteToName(result.root).dropLast(1)
+                val rootName = PitchUtils.midiNoteToName(result.root, noteNaming == "FLAT").dropLast(1)
                 "${rootName}${result.abbreviation}"
             } ?: "",
             notes = notes

@@ -71,20 +71,17 @@ fun InfoPanel(
                         else MaterialTheme.colorScheme.onSurface
                     )
                     Text(
+                        text = note.intervalFromRoot,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        modifier = Modifier.width(60.dp),
+                        textAlign = TextAlign.End
+                    )
+                    Text(
                         text = "${"%.2f".format(Locale.ROOT, note.frequencyHz)}Hz",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.End
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(
-                        text = note.intervalFromRoot,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                 }
             }

@@ -22,6 +22,7 @@ class SettingsRepository(private val context: Context) {
         val KEY_TRAIL_FADE = booleanPreferencesKey("trail_fade_enabled")
         val KEY_TRAIL_LENGTH = intPreferencesKey("trail_length")
         val KEY_VIEW_MODE = stringPreferencesKey("view_mode")
+        val KEY_NOTE_NAMING = stringPreferencesKey("note_naming")
     }
 
     val settings: Flow<Map<String, Any>> = context.dataStore.data.map { prefs ->
@@ -36,7 +37,8 @@ class SettingsRepository(private val context: Context) {
             "tuning_system" to (prefs[KEY_TUNING_SYSTEM] ?: "EQUAL"),
             "trail_fade_enabled" to (prefs[KEY_TRAIL_FADE] ?: true),
             "trail_length" to (prefs[KEY_TRAIL_LENGTH] ?: 4096),
-            "view_mode" to (prefs[KEY_VIEW_MODE] ?: "SQUARE")
+            "view_mode" to (prefs[KEY_VIEW_MODE] ?: "SQUARE"),
+            "note_naming" to (prefs[KEY_NOTE_NAMING] ?: "SHARP")
         )
     }
 
@@ -51,4 +53,5 @@ class SettingsRepository(private val context: Context) {
     suspend fun setTrailFadeEnabled(enabled: Boolean) { context.dataStore.edit { it[KEY_TRAIL_FADE] = enabled } }
     suspend fun setTrailLength(length: Int) { context.dataStore.edit { it[KEY_TRAIL_LENGTH] = length } }
     suspend fun setViewMode(mode: String) { context.dataStore.edit { it[KEY_VIEW_MODE] = mode } }
+    suspend fun setNoteNaming(naming: String) { context.dataStore.edit { it[KEY_NOTE_NAMING] = naming } }
 }

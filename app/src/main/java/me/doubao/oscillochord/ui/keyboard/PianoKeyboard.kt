@@ -199,7 +199,7 @@ private fun DrawScope.drawPianoKeys(state: KeyboardState, extraOctaves: Int, pri
             val act = state.activeNotes.contains(note)
             drawRoundRect(color = if (act) primaryColor else OscilloWhiteKey,
                 topLeft = Offset(x + gap / 2, gap), size = Size(whiteKeyWidth - gap, size.height - gap * 2), cornerRadius = wc)
-            if (state.showNoteLabels) drawLabel(PitchUtils.midiNoteToName(note), x + whiteKeyWidth / 2, size.height * 0.9f, whiteKeyWidth * 0.28f,
+            if (state.showNoteLabels) drawLabel(PitchUtils.midiNoteToName(note, state.noteNaming == "FLAT"), x + whiteKeyWidth / 2, size.height * 0.9f, whiteKeyWidth * 0.28f,
                 if (act) 0xFFFFFFFF.toInt() else 0xFF666666.toInt())
         }
     }
@@ -210,7 +210,7 @@ private fun DrawScope.drawPianoKeys(state: KeyboardState, extraOctaves: Int, pri
             val act = state.activeNotes.contains(note)
             drawRoundRect(color = if (act) primaryColor else OscilloBlackKey,
                 topLeft = Offset(x, 0f), size = Size(blackKeyWidth, blackKeyHeight), cornerRadius = bc)
-            if (state.showNoteLabels) drawLabel(PitchUtils.midiNoteToName(note), x + blackKeyWidth / 2, blackKeyHeight * 0.88f, blackKeyWidth * 0.32f,
+            if (state.showNoteLabels) drawLabel(PitchUtils.midiNoteToName(note, state.noteNaming == "FLAT"), x + blackKeyWidth / 2, blackKeyHeight * 0.88f, blackKeyWidth * 0.32f,
                 if (act) 0xFFFFFFFF.toInt() else 0xFFAAAAAA.toInt())
         }
     }
@@ -228,7 +228,7 @@ private fun DrawScope.drawEqualWidthKeys(state: KeyboardState, extraOctaves: Int
             val act = state.activeNotes.contains(note); val blk = st in setOf(1,3,6,8,10)
             drawRoundRect(color = when { act -> primaryColor; blk -> OscilloBlackKey; else -> OscilloWhiteKey },
                 topLeft = Offset(x + gap / 2, gap), size = Size(keyWidth - gap, size.height - gap * 2), cornerRadius = cr)
-            if (state.showNoteLabels) drawLabel(PitchUtils.midiNoteToName(note), x + keyWidth / 2, size.height * 0.9f, keyWidth * 0.38f,
+            if (state.showNoteLabels) drawLabel(PitchUtils.midiNoteToName(note, state.noteNaming == "FLAT"), x + keyWidth / 2, size.height * 0.9f, keyWidth * 0.38f,
                 when { act -> 0xFFFFFFFF.toInt(); blk -> 0xFFAAAAAA.toInt(); else -> 0xFF666666.toInt() })
         }
     }
