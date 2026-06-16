@@ -3,6 +3,7 @@ package me.doubao.oscillochord.ui.screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,7 +78,7 @@ fun MainScreen(
                 modifier = Modifier
                     .weight(0.18f)
                     .fillMaxHeight()
-                    .widthIn(min = 160.dp)
+                    .widthIn(min = 240.dp)
             )
             // Oscilloscope centered in its area
             Box(
@@ -105,21 +106,26 @@ fun MainScreen(
                 modifier = Modifier
                     .weight(0.20f)
                     .fillMaxHeight()
-                    .widthIn(min = 180.dp)
+                    .widthIn(min = 240.dp)
             )
         }
 
-        // Bottom: piano keyboard
-        PianoKeyboard(
-            state = keyboardState,
-            onNoteOn = { keyboardVM.noteOn(it) },
-            onNoteOff = { keyboardVM.noteOff(it) },
-            onNoteSlide = { from, to -> keyboardVM.noteSlide(from, to) },
-            onOctaveShift = { delta ->
-                if (delta > 0) keyboardVM.shiftOctaveUp()
-                else keyboardVM.shiftOctaveDown()
-            },
+        // Bottom: piano keyboard with background
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier.fillMaxWidth().weight(0.45f)
-        )
+        ) {
+            PianoKeyboard(
+                state = keyboardState,
+                onNoteOn = { keyboardVM.noteOn(it) },
+                onNoteOff = { keyboardVM.noteOff(it) },
+                onNoteSlide = { from, to -> keyboardVM.noteSlide(from, to) },
+                onOctaveShift = { delta ->
+                    if (delta > 0) keyboardVM.shiftOctaveUp()
+                    else keyboardVM.shiftOctaveDown()
+                },
+                modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 6.dp)
+            )
+        }
     }
 }

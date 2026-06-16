@@ -38,7 +38,7 @@ class AudioEngine {
         if (oscillators.containsKey(midiNote)) return
         oscillators[midiNote] = Oscillator(
             midiNote = midiNote, baseFrequency = baseFrequency,
-            waveform = waveform, amplitude = 0.4f
+            waveform = waveform, amplitude = 1.0f
         )
         ensurePlaying()
     }
@@ -71,19 +71,22 @@ class AudioEngine {
         job = scope.launch {
             val bufSize = bufferSize / 2
             val buffer = ShortArray(bufSize)
+            var smoothCount = 1.0f
             while (isActive) {
                 val active = HashMap(oscillators)
                 if (active.isEmpty()) break
+                val targetCount = active.size.toFloat().coerceAtLeast(1f)
+                val lerpSpeed = 0.005f // smooth transition over ~200 samples ≈ 4.5ms
 
                 for (i in buffer.indices) {
+                    smoothCount += (targetCount - smoothCount) * lerpSpeed
                     var sum = 0.0f
                     for (osc in active.values) {
                         sum += osc.nextSample()
                     }
-                    // Fixed small per-oscillator amplitude; let the sum clip naturally.
-                    // This avoids the volume-jump clicks from normalizing by count.
-                    val clipped = sum.coerceIn(-0.95f, 0.95f)
-                    buffer[i] = (clipped * Short.MAX_VALUE).toInt().toShort()
+                    sum /= smoothCount
+                    buffer[i] = (sum * Short.MAX_VALUE * 0.9f).toInt()
+                        .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
                 }
                 audioTrack?.write(buffer, 0, buffer.size)
             }

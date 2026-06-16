@@ -1,11 +1,11 @@
 package me.doubao.oscillochord.ui.oscilloscope
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -43,7 +43,9 @@ fun OscilloscopeView(
     }
 
     Box(
-        modifier = modifier.background(Color(0xFF0A0A1A))
+        modifier = modifier.then(
+            Modifier.drawBehind { drawRect(Color(0xFF0D0D1A)) }
+        )
     ) {
         Canvas(modifier = Modifier.fillMaxSize().padding(4.dp)) {
             drawSubtleGrid()

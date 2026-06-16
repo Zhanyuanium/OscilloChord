@@ -1,6 +1,7 @@
 package me.doubao.oscillochord.ui.keyboard
 
 import android.graphics.Paint
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +17,8 @@ import me.doubao.oscillochord.domain.chord.PitchUtils
 import me.doubao.oscillochord.ui.theme.OscilloBlackKey
 import me.doubao.oscillochord.ui.theme.OscilloWhiteKey
 import kotlinx.coroutines.CancellationException
+
+private const val TAG = "PianoKeyboard"
 
 private val WHITE_KEY_OFFSETS = listOf(0, 2, 4, 5, 7, 9, 11)
 private val BLACK_KEY_DATA = listOf(
@@ -47,16 +50,19 @@ fun PianoKeyboard(
                                 val pid = pointer.id.value.toInt()
                                 when {
                                     pointer.pressed && !pointer.previousPressed -> {
+                                        Log.d(TAG, "DOWN pid=$pid x=${pointer.position.x} y=${pointer.position.y}")
                                         hitTest(
                                             pointer.position.x, pointer.position.y,
                                             size.width.toFloat(), size.height.toFloat(), state
                                         )?.let { note ->
+                                            Log.d(TAG, "DOWN→noteOn midi=$note")
                                             pointerToNote[pid] = note
                                             onNoteOn(note)
                                         }
                                     }
                                     pointer.pressed && pointer.previousPressed -> {
-                                        val prevNote = pointerToNote[pid] ?: continue
+                                        val prevNote = pointerToNote[pid]
+                                        if (prevNote == null) { Log.w(TAG, "MOVE pid=$pid no prevNote"); continue }
                                         val currentNote = hitTest(
                                             pointer.position.x, pointer.position.y,
                                             size.width.toFloat(), size.height.toFloat(), state
@@ -64,6 +70,7 @@ fun PianoKeyboard(
                                         when (state.slideMode) {
                                             SlideMode.FOLLOW_KEYS -> {
                                                 if (currentNote != null && currentNote != prevNote) {
+                                                    Log.d(TAG, "SLIDE pid=$pid $prevNote→$currentNote")
                                                     onNoteSlide(prevNote, currentNote)
                                                     pointerToNote[pid] = currentNote
                                                 }
@@ -80,14 +87,16 @@ fun PianoKeyboard(
                                         }
                                     }
                                     !pointer.pressed && pointer.previousPressed -> {
+                                        Log.d(TAG, "UP pid=$pid note=${pointerToNote[pid]}")
                                         pointerToNote.remove(pid)?.let { onNoteOff(it) }
                                     }
                                 }
                             }
-                        } catch (_: CancellationException) {
-                            throw CancellationException("pointer cancelled")
-                        } catch (_: Exception) {
-                            // Ignore transient errors during fast gestures
+                        } catch (e: CancellationException) {
+                            Log.d(TAG, "pointerInput cancelled")
+                            throw e
+                        } catch (e: Exception) {
+                            Log.e(TAG, "pointerInput error", e)
                         }
                     }
                 }

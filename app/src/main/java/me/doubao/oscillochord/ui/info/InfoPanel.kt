@@ -22,15 +22,15 @@ fun InfoPanel(
             .padding(8.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Chord abbreviation — always reserve space
+        // Chord title — fixed height regardless of content
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
             ),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            modifier = Modifier.fillMaxWidth().height(56.dp)
         ) {
             Box(
-                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
                 if (state.chordAbbreviation.isNotEmpty()) {
@@ -46,7 +46,7 @@ fun InfoPanel(
 
         Spacer(Modifier.height(8.dp))
 
-        // Note list
+        // Note cards — single row each
         state.notes.forEach { note ->
             Card(
                 colors = CardDefaults.cardColors(
@@ -57,8 +57,10 @@ fun InfoPanel(
                 ),
                 modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = note.name,
@@ -66,23 +68,17 @@ fun InfoPanel(
                         color = if (note.isRoot) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurface
                     )
-                    // Interval left, frequency right
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = note.intervalFromRoot,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "${"%.2f".format(Locale.ROOT, note.frequencyHz)}Hz",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.End
-                        )
-                    }
+                    Text(
+                        text = note.intervalFromRoot,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "${"%.2f".format(Locale.ROOT, note.frequencyHz)}Hz",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.End
+                    )
                 }
             }
         }
