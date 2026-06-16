@@ -1,16 +1,13 @@
 package me.doubao.oscillochord.ui.keyboard
 
 import android.graphics.Paint
-import android.util.Log
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -20,14 +17,12 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.dp
 import me.doubao.oscillochord.domain.chord.PitchUtils
 import me.doubao.oscillochord.ui.theme.OscilloBlackKey
 import me.doubao.oscillochord.ui.theme.OscilloWhiteKey
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-private const val TAG = "PianoKeyboard"
 private val WHITE_KEY_OFFSETS = listOf(0, 2, 4, 5, 7, 9, 11)
 private val BLACK_KEY_DATA = listOf(0 to 1, 1 to 3, 3 to 6, 4 to 8, 5 to 10)
 
@@ -76,7 +71,6 @@ fun PianoKeyboard(
         if (ow <= 0f) { isAnimating = false; return@LaunchedEffect }
         val projected = req.offset + req.velocityPxPerMs * 250f
         val snapTarget = (projected / ow).roundToInt() * ow
-        Log.d(TAG, "FLING: offset=${req.offset} vel=${req.velocityPxPerMs} projected=$projected snapTarget=$snapTarget")
         scrollAnim.snapTo(req.offset)
         scrollAnim.animateTo(snapTarget,
             tween(durationMillis = 400, easing = EaseOutCubic),
@@ -88,7 +82,6 @@ fun PianoKeyboard(
         isAnimating = false
         val absorbed = -(snapTarget / ow).roundToInt()
         if (absorbed != 0) onOctaveShift(absorbed)
-        Log.d(TAG, "FLING done: absorbed=$absorbed oct=${state.octaveStart}")
     }
 
     val displayOffset = when {
@@ -103,10 +96,9 @@ fun PianoKeyboard(
         else if (isDragging || isAnimating) 1 else 0
     }
 
-    Box(modifier = modifier.fillMaxWidth()) {
-        Canvas(
-            modifier = Modifier.fillMaxSize()
-                .pointerInput(state.octaveStart, state.octaveCount, state.blackKeyLayout) {
+    Canvas(
+        modifier = modifier.fillMaxWidth()
+            .pointerInput(state.octaveStart, state.octaveCount, state.blackKeyLayout) {
                     awaitPointerEventScope {
                         while (true) {
                             val event = awaitPointerEvent()
@@ -157,7 +149,6 @@ fun PianoKeyboard(
                                 val ow = octW()
                                 val vel = computeVelocity(velocitySamples)
                                 velocitySamples.clear()
-                                Log.d(TAG, "SNAP: dragOffset=$dragOffset ow=$ow vel=$vel")
                                 if (ow > 0f && abs(vel) > 0.1f && abs(dragOffset) > ow * 0.15f) {
                                     pendingFling = FlingRequest(dragOffset, vel)
                                     flingCounter++
@@ -178,21 +169,9 @@ fun PianoKeyboard(
                 else drawPianoKeys(state, ext, primaryColor)
             }
         }
-
-        // Debug overlay
-        if (state.slideMode == SlideMode.SHIFT_OCTAVE) {
-            Text(
-                text = "off=%.0f ow=%.0f drg=$isDragging anim=$isAnimating ext=${extraOctaves()} oct=${state.octaveStart}".format(
-                    displayOffset, octW()
-                ),
-                color = Color.Yellow, style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.align(Alignment.TopStart).padding(4.dp)
-            )
-        }
-    }
 }
 
-// --- Drawing (unchanged logic with extraOctaves) ---
+// --- Drawing ---
 
 private fun DrawScope.drawPianoKeys(state: KeyboardState, extraOctaves: Int, primaryColor: Color) {
     val baseCount = state.octaveCount
