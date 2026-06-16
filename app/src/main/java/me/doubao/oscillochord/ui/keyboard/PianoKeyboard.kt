@@ -77,6 +77,8 @@ fun PianoKeyboard(
                                 val pid = pointer.id.value.toInt()
                                 when {
                                     pointer.pressed && !pointer.previousPressed -> {
+                                        // Each new touch resets scroll state
+                                        if (!isDragging) dragOffset = 0f
                                         hitTest(
                                             pointer.position.x - dragOffset, pointer.position.y,
                                             size.width.toFloat(), size.height.toFloat(),
@@ -111,8 +113,9 @@ fun PianoKeyboard(
                             if (isDragging && event.changes.all { !it.pressed }) {
                                 isDragging = false
                                 val ow = octW()
-                                if (ow > 0f && abs(dragOffset) > ow * 0.3f) {
-                                    val delta = -(dragOffset / ow).roundToInt()
+                                val delta = -(dragOffset / ow).roundToInt()
+                                Log.d(TAG, "SNAP calc: dragOffset=$dragOffset ow=$ow ratio=${dragOffset/ow} delta=$delta octaveStart=${state.octaveStart}")
+                                if (ow > 0f && delta != 0) {
                                     snapRequest = delta
                                 } else {
                                     dragOffset = 0f
