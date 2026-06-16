@@ -113,6 +113,7 @@ fun MainScreen(
                 onTuningSystemChange = { settingsVM.setTuningSystem(it) },
                 onTrailFadeChange = { settingsVM.setTrailFadeEnabled(it) },
                 onTrailLengthChange = { settingsVM.setTrailLength(it) },
+                onViewModeChange = { settingsVM.setViewMode(it) },
                 modifier = Modifier
                     .width(240.dp)
                     .fillMaxHeight()

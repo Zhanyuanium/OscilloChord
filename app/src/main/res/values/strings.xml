@@ -1,3 +1,34 @@
 <resources>
     <string name="app_name">OscilloChord</string>
+    <string name="info_title_placeholder">Press keys to start</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_keyboard">Keyboard</string>
+    <string name="settings_audio">Audio</string>
+    <string name="settings_oscilloscope">Oscilloscope</string>
+    <string name="settings_octave_count">Octaves: %d</string>
+    <string name="settings_black_key_layout">Black key layout</string>
+    <string name="settings_key_layout_piano">Piano</string>
+    <string name="settings_key_layout_equal">Equal width</string>
+    <string name="settings_slide_mode">Slide mode</string>
+    <string name="settings_slide_follow_keys">Follow keys</string>
+    <string name="settings_slide_shift_octave">Shift octave</string>
+    <string name="settings_show_note_labels">Show note labels</string>
+    <string name="settings_waveform">Instrument type</string>
+    <string name="settings_waveform_sine">Sine</string>
+    <string name="settings_waveform_square">Square</string>
+    <string name="settings_waveform_triangle">Triangle</string>
+    <string name="settings_waveform_sawtooth">Sawtooth</string>
+    <string name="settings_base_frequency">Base frequency: %.0f Hz</string>
+    <string name="settings_tuning_system">Tuning system</string>
+    <string name="settings_tuning_equal">Equal temperament</string>
+    <string name="settings_tuning_just">Just intonation</string>
+    <string name="settings_tuning_pythagorean">Pythagorean</string>
+    <string name="settings_trail_fade">Trail fade</string>
+    <string name="settings_trail_length">Trail length</string>
+    <string name="settings_trail_short">Short</string>
+    <string name="settings_trail_medium">Medium</string>
+    <string name="settings_trail_long">Long</string>
+    <string name="settings_view_mode">View mode</string>
+    <string name="settings_view_square">Square</string>
+    <string name="settings_view_wide">Wide</string>
 </resources>

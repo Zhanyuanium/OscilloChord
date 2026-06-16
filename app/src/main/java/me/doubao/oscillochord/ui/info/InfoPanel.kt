@@ -7,9 +7,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import me.doubao.oscillochord.R
 import java.util.Locale
 
 @Composable
@@ -59,19 +61,14 @@ fun InfoPanel(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = note.name,
                         style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f),
                         color = if (note.isRoot) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = note.intervalFromRoot,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "${"%.2f".format(Locale.ROOT, note.frequencyHz)}Hz",
@@ -80,12 +77,22 @@ fun InfoPanel(
                         textAlign = TextAlign.End
                     )
                 }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text(
+                        text = note.intervalFromRoot,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
             }
         }
 
         if (state.notes.isEmpty()) {
             Text(
-                text = "按下键盘开始",
+                text = stringResource(R.string.info_title_placeholder),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 modifier = Modifier.padding(12.dp)

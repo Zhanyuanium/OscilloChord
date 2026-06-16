@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">OscilloChord</string>
+    <string name="info_title_placeholder">按下键盘开始</string>
+    <string name="settings_title">设置</string>
+    <string name="settings_keyboard">键盘</string>
+    <string name="settings_audio">音频</string>
+    <string name="settings_oscilloscope">示波器</string>
+    <string name="settings_octave_count">八度数: %d</string>
+    <string name="settings_black_key_layout">黑键布局</string>
+    <string name="settings_key_layout_piano">钢琴式</string>
+    <string name="settings_key_layout_equal">等宽式</string>
+    <string name="settings_slide_mode">滑动行为</string>
+    <string name="settings_slide_follow_keys">跟随按键</string>
+    <string name="settings_slide_shift_octave">切换八度</string>
+    <string name="settings_show_note_labels">显示音名</string>
+    <string name="settings_waveform">乐器类型</string>
+    <string name="settings_waveform_sine">正弦波</string>
+    <string name="settings_waveform_square">方波</string>
+    <string name="settings_waveform_triangle">三角波</string>
+    <string name="settings_waveform_sawtooth">锯齿波</string>
+    <string name="settings_base_frequency">标准音频率: %.0f Hz</string>
+    <string name="settings_tuning_system">律制</string>
+    <string name="settings_tuning_equal">十二平均律</string>
+    <string name="settings_tuning_just">纯律</string>
+    <string name="settings_tuning_pythagorean">五度相生率</string>
+    <string name="settings_trail_fade">轨迹渐隐</string>
+    <string name="settings_trail_length">轨迹长度</string>
+    <string name="settings_trail_short">短</string>
+    <string name="settings_trail_medium">中</string>
+    <string name="settings_trail_long">长</string>
+    <string name="settings_view_mode">视图模式</string>
+    <string name="settings_view_square">方形</string>
+    <string name="settings_view_wide">宽屏</string>
+</resources>

@@ -7,7 +7,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
+import me.doubao.oscillochord.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,6 +25,7 @@ fun SettingsPanel(
     onTuningSystemChange: (String) -> Unit,
     onTrailFadeChange: (Boolean) -> Unit,
     onTrailLengthChange: (Int) -> Unit,
+    onViewModeChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -34,19 +38,22 @@ fun SettingsPanel(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                Text("键盘", style = MaterialTheme.typography.labelSmall,
+                Text(stringResource(R.string.settings_keyboard), style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(8.dp))
-                Text("八度数: ${state.octaveCount}", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.settings_octave_count, state.octaveCount), style = MaterialTheme.typography.bodySmall)
                 Slider(value = state.octaveCount.toFloat(),
                     onValueChange = { onOctaveCountChange(it.toInt()) },
                     valueRange = 1f..5f, steps = 3)
                 Spacer(Modifier.height(8.dp))
 
                 // Segmented button: key layout
-                Text("黑键布局", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.settings_black_key_layout), style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(4.dp))
-                val layoutOptions = listOf("PIANO" to "钢琴式", "EQUAL_WIDTH" to "等宽式")
+                val layoutOptions = listOf(
+                    "PIANO" to stringResource(R.string.settings_key_layout_piano),
+                    "EQUAL_WIDTH" to stringResource(R.string.settings_key_layout_equal)
+                )
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     layoutOptions.forEachIndexed { index, (key, label) ->
                         SegmentedButton(
@@ -59,9 +66,12 @@ fun SettingsPanel(
 
                 Spacer(Modifier.height(8.dp))
                 // Segmented button: slide mode
-                Text("滑动行为", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.settings_slide_mode), style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(4.dp))
-                val slideOptions = listOf("FOLLOW_KEYS" to "跟随按键", "SHIFT_OCTAVE" to "切换八度")
+                val slideOptions = listOf(
+                    "FOLLOW_KEYS" to stringResource(R.string.settings_slide_follow_keys),
+                    "SHIFT_OCTAVE" to stringResource(R.string.settings_slide_shift_octave)
+                )
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     slideOptions.forEachIndexed { index, (key, label) ->
                         SegmentedButton(
@@ -73,10 +83,10 @@ fun SettingsPanel(
                 }
 
                 Spacer(Modifier.height(8.dp))
-                // Toggle: show note labels (no extra text)
+                // Toggle: show note labels
                 Row(verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()) {
-                    Text("显示音名", style = MaterialTheme.typography.bodySmall,
+                    Text(stringResource(R.string.settings_show_note_labels), style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.weight(1f))
                     Switch(checked = state.showNoteLabels,
                         onCheckedChange = onShowNoteLabelsChange)
@@ -91,22 +101,27 @@ fun SettingsPanel(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                Text("音频", style = MaterialTheme.typography.labelSmall,
+                Text(stringResource(R.string.settings_audio), style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(8.dp))
 
                 // Dropdown for waveform
                 var expanded by remember { mutableStateOf(false) }
-                val waveforms = listOf("SINE" to "正弦波", "SQUARE" to "方波",
-                    "TRIANGLE" to "三角波", "SAWTOOTH" to "锯齿波")
-                val currentLabel = waveforms.find { it.first == state.waveform }?.second ?: "正弦波"
+                val waveforms = listOf(
+                    "SINE" to stringResource(R.string.settings_waveform_sine),
+                    "SQUARE" to stringResource(R.string.settings_waveform_square),
+                    "TRIANGLE" to stringResource(R.string.settings_waveform_triangle),
+                    "SAWTOOTH" to stringResource(R.string.settings_waveform_sawtooth)
+                )
+                val currentLabel = waveforms.find { it.first == state.waveform }?.second
+                    ?: stringResource(R.string.settings_waveform_sine)
                 ExposedDropdownMenuBox(expanded = expanded,
                     onExpandedChange = { expanded = it }) {
                     OutlinedTextField(
                         value = currentLabel,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("乐器类型") },
+                        label = { Text(stringResource(R.string.settings_waveform)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                         modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
                         textStyle = MaterialTheme.typography.bodySmall
@@ -121,7 +136,7 @@ fun SettingsPanel(
                 }
 
                 Spacer(Modifier.height(8.dp))
-                Text("标准音频率: ${String.format("%.0f", state.baseFrequency)} Hz",
+                Text(stringResource(R.string.settings_base_frequency, state.baseFrequency),
                     style = MaterialTheme.typography.bodySmall)
                 Slider(value = state.baseFrequency.toFloat(),
                     onValueChange = { onBaseFrequencyChange(it.toDouble()) },
@@ -129,12 +144,17 @@ fun SettingsPanel(
 
                 Spacer(Modifier.height(8.dp))
                 var tuningExpanded by remember { mutableStateOf(false) }
-                val tuningOptions = listOf("EQUAL" to "十二平均律", "JUST" to "纯律", "PYTHAGOREAN" to "五度相生率")
-                val tuningLabel = tuningOptions.find { it.first == state.tuningSystem }?.second ?: "十二平均律"
+                val tuningOptions = listOf(
+                    "EQUAL" to stringResource(R.string.settings_tuning_equal),
+                    "JUST" to stringResource(R.string.settings_tuning_just),
+                    "PYTHAGOREAN" to stringResource(R.string.settings_tuning_pythagorean)
+                )
+                val tuningLabel = tuningOptions.find { it.first == state.tuningSystem }?.second
+                    ?: stringResource(R.string.settings_tuning_equal)
                 ExposedDropdownMenuBox(expanded = tuningExpanded, onExpandedChange = { tuningExpanded = it }) {
                     OutlinedTextField(
                         value = tuningLabel, onValueChange = {}, readOnly = true,
-                        label = { Text("律制") },
+                        label = { Text(stringResource(R.string.settings_tuning_system)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(tuningExpanded) },
                         modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
                         textStyle = MaterialTheme.typography.bodySmall
@@ -156,26 +176,50 @@ fun SettingsPanel(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                Text("示波器", style = MaterialTheme.typography.labelSmall,
+                Text(stringResource(R.string.settings_oscilloscope), style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()) {
-                    Text("轨迹渐隐", style = MaterialTheme.typography.bodySmall,
+                    Text(stringResource(R.string.settings_trail_fade), style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.weight(1f))
                     Switch(checked = state.trailFadeEnabled,
                         onCheckedChange = onTrailFadeChange)
                 }
                 Spacer(Modifier.height(8.dp))
-                Text("轨迹长度", style = MaterialTheme.typography.bodySmall)
-                Spacer(Modifier.height(4.dp))
-                val trailOptions = listOf(4096 to "短", 8192 to "中", 16384 to "长")
+                val trailValues = intArrayOf(1024, 2048, 4096, 8192, 16384)
+                val trailIdx = trailValues.indexOf(state.trailLength).coerceAtLeast(0)
+                Text("${stringResource(R.string.settings_trail_length)}: ${trailValues[trailIdx]}",
+                    style = MaterialTheme.typography.bodySmall)
+                Slider(
+                    value = trailIdx.toFloat(),
+                    onValueChange = { onTrailLengthChange(trailValues[it.roundToInt().coerceIn(0, 4)]) },
+                    valueRange = 0f..4f,
+                    steps = 3
+                )
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        // View mode
+        Card(colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(stringResource(R.string.settings_view_mode), style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.height(8.dp))
+                val viewOptions = listOf(
+                    "SQUARE" to stringResource(R.string.settings_view_square),
+                    "WIDE" to stringResource(R.string.settings_view_wide)
+                )
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    trailOptions.forEachIndexed { index, (len, label) ->
+                    viewOptions.forEachIndexed { index, (key, label) ->
                         SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(index, trailOptions.size),
-                            onClick = { onTrailLengthChange(len) },
-                            selected = state.trailLength == len
+                            shape = SegmentedButtonDefaults.itemShape(index, viewOptions.size),
+                            onClick = { onViewModeChange(key) },
+                            selected = state.viewMode == key
                         ) { Text(label, style = MaterialTheme.typography.bodySmall) }
                     }
                 }
