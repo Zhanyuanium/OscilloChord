@@ -60,14 +60,14 @@ fun PianoKeyboard(
         val ow = octW()
         if (ow <= 0f) { isAnimating = false; return@LaunchedEffect }
 
-        val flingDist = req.velocityPxPerSec * 0.15f
+        val flingDist = req.velocityPxPerSec * 0.4f
         val projected = req.offset + flingDist
         val tgtOct = (projected / ow).roundToInt()
         val snapTarget = tgtOct * ow
 
         scrollAnim.snapTo(req.offset)
         scrollAnim.animateTo(snapTarget,
-            spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
+            spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow),
             initialVelocity = req.velocityPxPerSec / 1000f
         )
         val absorbed = (snapTarget / ow).roundToInt()
@@ -86,11 +86,9 @@ fun PianoKeyboard(
     }
 
     val displayOffset = if (isDragging) rawOffset else scrollAnim.value
-    val extraOctaves = if (isDragging || isAnimating) 1 else 0
-    // hit-test range: original ± extraOctaves
-    val hitStart = state.octaveStart - extraOctaves * 12
-    val hitCount = state.octaveCount + extraOctaves * 2
-    val hitState = state.copy(octaveStart = hitStart, octaveCount = hitCount)
+    // Extended range while offset is non-zero (drag or animation in progress)
+    val needsExtended = isDragging || isAnimating || abs(displayOffset) > 0.5f
+    val extraOctaves = if (needsExtended) 1 else 0
 
     Canvas(
         modifier = modifier.fillMaxWidth()
@@ -105,7 +103,7 @@ fun PianoKeyboard(
                                 pointer.pressed && !pointer.previousPressed -> {
                                     velocitySamples.clear()
                                     hitTest(pointer.position.x - displayOffset, pointer.position.y,
-                                        size.width.toFloat(), size.height.toFloat(), hitState
+                                        size.width.toFloat(), size.height.toFloat(), state, extraOctaves
                                     )?.let { pointerToNote[pid] = it; onNoteOn(it) }
                                 }
                                 pointer.pressed && pointer.previousPressed -> {
@@ -114,7 +112,7 @@ fun PianoKeyboard(
                                         SlideMode.FOLLOW_KEYS -> {
                                             val cur = hitTest(pointer.position.x - displayOffset,
                                                 pointer.position.y,
-                                                size.width.toFloat(), size.height.toFloat(), hitState
+                                                size.width.toFloat(), size.height.toFloat(), state, extraOctaves
                                             )
                                             if (cur != null && cur != prev) {
                                                 onNoteSlide(prev, cur); pointerToNote[pid] = cur
@@ -242,22 +240,31 @@ private fun DrawScope.drawNoteLabel(text: String, x: Float, y: Float, tSize: Flo
     })
 }
 
-private fun hitTest(x: Float, y: Float, totalWidth: Float, totalHeight: Float, state: KeyboardState): Int? {
-    if (x < 0f || x > totalWidth) return null
-    return if (state.blackKeyLayout == BlackKeyLayout.EQUAL_WIDTH) {
-        val keyWidth = totalWidth / (state.octaveCount * 12)
-        state.octaveStart + (x / keyWidth).toInt().coerceIn(0, state.octaveCount * 12 - 1)
+private fun hitTest(x: Float, y: Float, totalWidth: Float, totalHeight: Float,
+                     state: KeyboardState, extraOctaves: Int): Int? {
+    val baseCount = state.octaveCount
+    val firstOct = -extraOctaves
+    val lastOct = baseCount + extraOctaves - 1
+    if (state.blackKeyLayout == BlackKeyLayout.EQUAL_WIDTH) {
+        val keyWidth = totalWidth / (baseCount * 12) // original sizing
+        val idx = (x / keyWidth).toInt()
+        val totalKeys = (lastOct - firstOct + 1) * 12
+        if (idx < 0 || idx >= totalKeys) return null
+        return state.octaveStart + firstOct * 12 + idx
     } else {
-        val whiteKeyWidth = totalWidth / (state.octaveCount * 7)
+        val whiteKeyWidth = totalWidth / (baseCount * 7) // original sizing
         val blackKeyWidth = whiteKeyWidth * 0.6f
         if (y < totalHeight * 0.62f) {
-            for (octave in 0 until state.octaveCount)
+            for (octave in firstOct..lastOct)
                 for ((wi, st) in BLACK_KEY_DATA) {
                     val keyLeft = (octave * 7 + wi) * whiteKeyWidth + whiteKeyWidth * 0.7f
                     if (x in keyLeft..(keyLeft + blackKeyWidth)) return state.octaveStart + octave * 12 + st
                 }
         }
-        val wi = (x / whiteKeyWidth).toInt().coerceIn(0, state.octaveCount * 7 - 1)
-        state.octaveStart + (wi / 7) * 12 + WHITE_KEY_OFFSETS[wi % 7]
+        val totalWhites = (lastOct - firstOct + 1) * 7
+        val wi = (x / whiteKeyWidth).toInt()
+        if (wi < 0 || wi >= totalWhites) return null
+        val oct = wi / 7 + firstOct
+        return state.octaveStart + oct * 12 + WHITE_KEY_OFFSETS[wi % 7]
     }
 }
