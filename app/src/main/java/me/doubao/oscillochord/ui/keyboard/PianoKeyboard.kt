@@ -40,11 +40,11 @@ fun PianoKeyboard(
     val pointerToNote = remember { mutableMapOf<Int, Int>() }
     val primaryColor = MaterialTheme.colorScheme.primary
 
-    // Simple accumulated drag offset
+    // Drag offset — only tracked from a single pointer to avoid multiplying
     var dragOffset by remember { mutableFloatStateOf(0f) }
     var isDragging by remember { mutableStateOf(false) }
+    var dragPointerId by remember { mutableStateOf(-1) }
     var canvasWidth by remember { mutableFloatStateOf(1f) }
-    // Trigger snap from outside pointerInput
     var snapRequest by remember { mutableStateOf(0) }
 
     fun octW(): Float = canvasWidth / state.octaveCount
@@ -102,8 +102,11 @@ fun PianoKeyboard(
                                                 }
                                             }
                                             SlideMode.SHIFT_OCTAVE -> {
-                                                dragOffset += pointer.position.x - pointer.previousPosition.x
-                                                isDragging = true
+                                                if (dragPointerId < 0) dragPointerId = pid
+                                                if (pid == dragPointerId) {
+                                                    dragOffset += pointer.position.x - pointer.previousPosition.x
+                                                    isDragging = true
+                                                }
                                             }
                                         }
                                     }
@@ -115,6 +118,7 @@ fun PianoKeyboard(
                             // All pointers up → snap to nearest octave
                             if (isDragging && event.changes.all { !it.pressed }) {
                                 isDragging = false
+                                dragPointerId = -1
                                 val ow = octW()
                                 val delta = -(dragOffset / ow).roundToInt()
                                 Log.d(TAG, "SNAP calc: dragOffset=$dragOffset ow=$ow ratio=${dragOffset/ow} delta=$delta octaveStart=${state.octaveStart}")
