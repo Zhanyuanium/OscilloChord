@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import me.doubao.oscillochord.domain.audio.Waveform
@@ -27,7 +29,6 @@ fun MainScreen(
     settingsVM: SettingsViewModel = viewModel()
 ) {
     val keyboardState by keyboardVM.state.collectAsStateWithLifecycle()
-    val oscilloscopeState by oscilloscopeVM.state.collectAsStateWithLifecycle()
     val infoState by infoVM.state.collectAsStateWithLifecycle()
     val settingsState by settingsVM.state.collectAsStateWithLifecycle()
 
@@ -65,7 +66,7 @@ fun MainScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Top half
+        // Top half — fixed height, panels with min width
         Row(
             modifier = Modifier
                 .weight(0.55f)
@@ -73,15 +74,26 @@ fun MainScreen(
         ) {
             InfoPanel(
                 state = infoState,
-                modifier = Modifier.weight(0.18f).fillMaxHeight()
+                modifier = Modifier
+                    .weight(0.18f)
+                    .fillMaxHeight()
+                    .widthIn(min = 160.dp)
             )
-            OscilloscopeView(
-                activeNotes = keyboardState.activeNotes,
-                baseFrequency = settingsState.baseFrequency,
-                waveform = Waveform.valueOf(settingsState.waveform),
-                viewModel = oscilloscopeVM,
-                modifier = Modifier.weight(0.62f).fillMaxHeight()
-            )
+            // Oscilloscope centered in its area
+            Box(
+                modifier = Modifier
+                    .weight(0.62f)
+                    .fillMaxHeight(),
+                contentAlignment = Alignment.Center
+            ) {
+                OscilloscopeView(
+                    activeNotes = keyboardState.activeNotes,
+                    baseFrequency = settingsState.baseFrequency,
+                    waveform = Waveform.valueOf(settingsState.waveform),
+                    viewModel = oscilloscopeVM,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
             SettingsPanel(
                 state = settingsState,
                 onOctaveCountChange = { settingsVM.setOctaveCount(it) },
@@ -90,11 +102,14 @@ fun MainScreen(
                 onShowNoteLabelsChange = { settingsVM.setShowNoteLabels(it) },
                 onWaveformChange = { settingsVM.setWaveform(it) },
                 onBaseFrequencyChange = { settingsVM.setBaseFrequency(it) },
-                modifier = Modifier.weight(0.20f).fillMaxHeight()
+                modifier = Modifier
+                    .weight(0.20f)
+                    .fillMaxHeight()
+                    .widthIn(min = 180.dp)
             )
         }
 
-        // Bottom: piano keyboard (fills remaining space)
+        // Bottom: piano keyboard
         PianoKeyboard(
             state = keyboardState,
             onNoteOn = { keyboardVM.noteOn(it) },

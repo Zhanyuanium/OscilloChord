@@ -43,11 +43,9 @@ fun OscilloscopeView(
     }
 
     Box(
-        modifier = modifier
-            .background(Color(0xFF0A0A1A))
-            .padding(4.dp)
+        modifier = modifier.background(Color(0xFF0A0A1A))
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(modifier = Modifier.fillMaxSize().padding(4.dp)) {
             drawSubtleGrid()
             drawTrail(state.trailPoints, trailColor)
         }

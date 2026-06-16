@@ -17,14 +17,12 @@ data class OscilloscopeState(
 class OscilloscopeViewModel : ViewModel() {
     private val projector = LissajousProjector()
     private val visualOscillators = mutableMapOf<Int, Oscillator>()
-    private val delayLine = ArrayDeque<Float>()
     private val _state = MutableStateFlow(OscilloscopeState())
     val state: StateFlow<OscilloscopeState> = _state.asStateFlow()
 
     companion object {
         private const val SAMPLES_PER_FRAME = 256
         private const val MAX_TRAIL = 8192
-        private const val DELAY_LENGTH = 64
     }
 
     fun syncWith(
@@ -52,7 +50,6 @@ class OscilloscopeViewModel : ViewModel() {
         val active = visualOscillators.toList().sortedBy { it.first }
 
         if (active.isEmpty()) {
-            delayLine.clear()
             _state.value = OscilloscopeState(trailPoints = emptyList())
             return
         }
@@ -63,18 +60,15 @@ class OscilloscopeViewModel : ViewModel() {
         for (i in 0 until SAMPLES_PER_FRAME) {
             val raw = FloatArray(oscs.size) { j -> oscs[j].nextSample() }
 
-            val sampleArray = if (raw.size == 1) {
-                // N=1: use delay line for quadrature → ellipse instead of line
-                delayLine.addLast(raw[0])
-                if (delayLine.size > DELAY_LENGTH) delayLine.removeFirst()
-                val delayed = delayLine.first()
-                floatArrayOf(raw[0], delayed)
+            val projected = if (raw.size == 1) {
+                // N=1: waveform display — x = time ramp, y = amplitude
+                val ramp = (i.toFloat() / SAMPLES_PER_FRAME) * 2f - 1f
+                ramp to raw[0]
             } else {
-                raw
+                projector.project(raw)
             }
 
-            val (x, y) = projector.project(sampleArray)
-            points.add(TrailPoint(x, y))
+            points.add(TrailPoint(projected.first, projected.second))
         }
 
         // Trim trail
@@ -88,6 +82,5 @@ class OscilloscopeViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         visualOscillators.clear()
-        delayLine.clear()
     }
 }
