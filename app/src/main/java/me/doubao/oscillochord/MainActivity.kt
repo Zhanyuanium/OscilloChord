@@ -1,6 +1,8 @@
 package me.doubao.oscillochord
 
 import android.os.Bundle
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +22,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        hideSystemUI()
 
         val keyboardVM: KeyboardViewModel by viewModels()
 
@@ -42,10 +45,26 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        hideSystemUI()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) hideSystemUI()
+    }
+
+    private fun hideSystemUI() {
+        window.insetsController?.let { controller ->
+            controller.hide(WindowInsets.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        if (::midiManager.isInitialized) {
-            midiManager.destroy()
-        }
+        if (::midiManager.isInitialized) midiManager.destroy()
     }
 }

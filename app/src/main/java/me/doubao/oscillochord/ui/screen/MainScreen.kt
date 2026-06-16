@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import me.doubao.oscillochord.domain.audio.Waveform
+import me.doubao.oscillochord.domain.chord.TuningSystem
 import me.doubao.oscillochord.ui.info.InfoPanel
 import me.doubao.oscillochord.ui.info.InfoViewModel
 import me.doubao.oscillochord.ui.keyboard.BlackKeyLayout
@@ -34,8 +35,9 @@ fun MainScreen(
     val settingsState by settingsVM.state.collectAsStateWithLifecycle()
 
     // Wire active notes → info panel
-    LaunchedEffect(keyboardState.activeNotes) {
-        infoVM.updateNotes(keyboardState.activeNotes, settingsState.baseFrequency)
+    LaunchedEffect(keyboardState.activeNotes, settingsState.tuningSystem) {
+        infoVM.updateNotes(keyboardState.activeNotes, settingsState.baseFrequency,
+            TuningSystem.valueOf(settingsState.tuningSystem))
     }
 
     // Wire settings → keyboard VM
@@ -60,6 +62,9 @@ fun MainScreen(
     }
     LaunchedEffect(settingsState.baseFrequency) {
         keyboardVM.setBaseFrequency(settingsState.baseFrequency)
+    }
+    LaunchedEffect(settingsState.tuningSystem) {
+        keyboardVM.setTuningSystem(TuningSystem.valueOf(settingsState.tuningSystem))
     }
 
     Column(
@@ -90,6 +95,8 @@ fun MainScreen(
                     activeNotes = keyboardState.activeNotes,
                     baseFrequency = settingsState.baseFrequency,
                     waveform = Waveform.valueOf(settingsState.waveform),
+                    tuningSystem = TuningSystem.valueOf(settingsState.tuningSystem),
+                    trailFadeEnabled = settingsState.trailFadeEnabled,
                     viewModel = oscilloscopeVM,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -103,6 +110,7 @@ fun MainScreen(
                 onWaveformChange = { settingsVM.setWaveform(it) },
                 onBaseFrequencyChange = { settingsVM.setBaseFrequency(it) },
                 onTuningSystemChange = { settingsVM.setTuningSystem(it) },
+                onTrailFadeChange = { settingsVM.setTrailFadeEnabled(it) },
                 modifier = Modifier
                     .width(240.dp)
                     .fillMaxHeight()

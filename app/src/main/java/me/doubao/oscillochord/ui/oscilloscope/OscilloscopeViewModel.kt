@@ -30,20 +30,19 @@ class OscilloscopeViewModel : ViewModel() {
     fun syncWith(
         activeNotes: Set<Int>,
         baseFrequency: Double,
-        waveform: Waveform
+        waveform: Waveform,
+        tuningSystem: me.doubao.oscillochord.domain.chord.TuningSystem = me.doubao.oscillochord.domain.chord.TuningSystem.EQUAL
     ) {
-        // Add new oscillators
         for (note in activeNotes) {
             if (!visualOscillators.containsKey(note)) {
-                visualOscillators[note] = Oscillator(note, baseFrequency, waveform)
+                visualOscillators[note] = Oscillator(note, baseFrequency, waveform, tuningSystem = tuningSystem)
             }
         }
-        // Remove released oscillators
         visualOscillators.keys.retainAll(activeNotes)
-        // Sync parameters
         visualOscillators.values.forEach {
             it.baseFrequency = baseFrequency
             it.waveform = waveform
+            it.tuningSystem = tuningSystem
             it.amplitude = 1.0f
         }
     }

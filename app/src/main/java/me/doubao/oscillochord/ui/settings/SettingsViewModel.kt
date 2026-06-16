@@ -15,7 +15,8 @@ data class SettingsState(
     val showNoteLabels: Boolean = true,
     val waveform: String = "SINE",
     val baseFrequency: Double = 440.0,
-    val tuningSystem: String = "EQUAL"
+    val tuningSystem: String = "EQUAL",
+    val trailFadeEnabled: Boolean = true
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -34,7 +35,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     showNoteLabels = prefs["show_note_labels"] as? Boolean ?: true,
                     waveform = prefs["waveform"] as? String ?: "SINE",
                     baseFrequency = prefs["base_frequency"] as? Double ?: 440.0,
-                    tuningSystem = prefs["tuning_system"] as? String ?: "EQUAL"
+                    tuningSystem = prefs["tuning_system"] as? String ?: "EQUAL",
+                    trailFadeEnabled = prefs["trail_fade_enabled"] as? Boolean ?: true
                 )
             }
         }
@@ -47,4 +49,5 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setWaveform(waveform: String) { viewModelScope.launch { repository.setWaveform(waveform) } }
     fun setBaseFrequency(hz: Double) { viewModelScope.launch { repository.setBaseFrequency(hz) } }
     fun setTuningSystem(system: String) { viewModelScope.launch { repository.setTuningSystem(system) } }
+    fun setTrailFadeEnabled(enabled: Boolean) { viewModelScope.launch { repository.setTrailFadeEnabled(enabled) } }
 }

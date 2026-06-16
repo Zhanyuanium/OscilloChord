@@ -20,6 +20,7 @@ fun SettingsPanel(
     onWaveformChange: (String) -> Unit,
     onBaseFrequencyChange: (Double) -> Unit,
     onTuningSystemChange: (String) -> Unit,
+    onTrailFadeChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -141,6 +142,26 @@ fun SettingsPanel(
                             selected = state.tuningSystem == key
                         ) { Text(label, style = MaterialTheme.typography.bodySmall) }
                     }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        // Oscilloscope section
+        Card(colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text("示波器", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()) {
+                    Text("轨迹渐隐", style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.weight(1f))
+                    Switch(checked = state.trailFadeEnabled,
+                        onCheckedChange = onTrailFadeChange)
                 }
             }
         }
