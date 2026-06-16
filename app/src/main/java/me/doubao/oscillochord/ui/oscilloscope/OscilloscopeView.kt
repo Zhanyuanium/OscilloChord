@@ -83,38 +83,52 @@ private fun DrawScope.drawTrail(points: List<TrailPoint>, color: Color) {
     val halfW = size.width / 2f
     val halfH = size.height / 2f
     val scale = minOf(halfW, halfH) * 0.85f
+    val chunkSize = 32
+    val totalChunks = (points.size + chunkSize - 1) / chunkSize
 
-    val path = Path()
-    var started = false
+    for (chunk in 0 until totalChunks) {
+        val chunkStart = chunk * chunkSize
+        val chunkEnd = minOf(chunkStart + chunkSize, points.size)
+        if (chunkEnd - chunkStart < 2) continue
 
-    for (i in 1 until points.size) {
-        val p0 = points[i - 1]
-        val p1 = points[i]
-        val x0 = halfW + p0.x * scale
-        val y0 = halfH + p0.y * scale
-        val x1 = halfW + p1.x * scale
-        val y1 = halfH + p1.y * scale
+        // Compute alpha: position in trail, where 0 = oldest, size-1 = newest
+        // The oldest chunk gets alpha near 0, newest chunk gets alpha near 1.
+        val midIndex = (chunkStart + chunkEnd) / 2
+        val alpha = if (points.size > 1) midIndex.toFloat() / (points.size - 1) else 1.0f
+        val chunkColor = color.copy(alpha = alpha.coerceIn(0.0f, 1.0f))
 
-        // Skip out-of-bounds points (break the path on discontinuity)
-        val outOfBounds = x0 < -scale * 2 || x0 > size.width + scale * 2 ||
-            y0 < -scale * 2 || y0 > size.height + scale * 2
-        if (outOfBounds) {
-            if (started) {
-                drawPath(path, color, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
-                path.reset()
-                started = false
+        val path = Path()
+        var started = false
+
+        for (i in chunkStart + 1 until chunkEnd) {
+            val p0 = points[i - 1]
+            val p1 = points[i]
+            val x0 = halfW + p0.x * scale
+            val y0 = halfH + p0.y * scale
+            val x1 = halfW + p1.x * scale
+            val y1 = halfH + p1.y * scale
+
+            // Skip out-of-bounds points (break the path on discontinuity)
+            val outOfBounds = x0 < -scale * 2 || x0 > size.width + scale * 2 ||
+                y0 < -scale * 2 || y0 > size.height + scale * 2
+            if (outOfBounds) {
+                if (started) {
+                    drawPath(path, chunkColor, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+                    path.reset()
+                    started = false
+                }
+                continue
             }
-            continue
+
+            if (!started) {
+                path.moveTo(x0, y0)
+                started = true
+            }
+            path.lineTo(x1, y1)
         }
 
-        if (!started) {
-            path.moveTo(x0, y0)
-            started = true
+        if (started) {
+            drawPath(path, chunkColor, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
         }
-        path.lineTo(x1, y1)
-    }
-
-    if (started) {
-        drawPath(path, color, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
 }
