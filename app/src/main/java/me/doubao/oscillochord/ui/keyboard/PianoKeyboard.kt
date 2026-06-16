@@ -128,14 +128,12 @@ fun PianoKeyboard(
                                             }
                                             SlideMode.SHIFT_OCTAVE -> {
                                                 val dx = pointer.position.x - pointer.previousPosition.x
-                                                if (abs(dx) > 1f) {
-                                                    if (dragPointerId < 0) dragPointerId = pid
-                                                    if (pid == dragPointerId) {
-                                                        dragOffset += dx
-                                                        velocitySamples.add(System.nanoTime() to dx)
-                                                        while (velocitySamples.size > 20) velocitySamples.removeAt(0)
-                                                        isDragging = true
-                                                    }
+                                                if (dragPointerId < 0) dragPointerId = pid
+                                                if (pid == dragPointerId) {
+                                                    dragOffset += dx
+                                                    velocitySamples.add(System.nanoTime() to dx)
+                                                    while (velocitySamples.size > 20) velocitySamples.removeAt(0)
+                                                    if (abs(dragOffset) > octW() * 0.15f) isDragging = true
                                                 }
                                             }
                                         }
