@@ -75,6 +75,10 @@ app/src/main/java/me/doubao/oscillochord/
 - **八度滑动**在拖拽时追踪像素级偏移，松手后根据释放速度计算落点并吸附到最近八度边界，使用 `tween` 动画实现惯性。
 - **和弦识别**支持转位——以每个演奏的音为候选根音，将得到的音高类别集合与模板数据库匹配。
 
+## 灵感来源
+
+灵感来源于 iOS 应用 [Plotony](https://apps.apple.com/cn/app/plotony/id1502795362)，一款将音程可视化为利萨如图形的应用。
+
 ## 许可
 
 MIT

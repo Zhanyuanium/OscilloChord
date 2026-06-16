@@ -75,6 +75,10 @@ app/src/main/java/me/doubao/oscillochord/
 - **Octave scrolling tracks a pixel-precise offset** during drag, then animates to the nearest octave boundary with a `tween` animation after release, projecting the landing point from the release velocity for natural inertia.
 - **Chord detection is inversion-aware** — it tests each played note as a candidate root and matches the resulting pitch-class set against a template database.
 
+## Inspiration
+
+Inspired by [Plotony](https://apps.apple.com/us/app/plotony/id1502795362), an iOS app that visualizes musical intervals as Lissajous curves.
+
 ## License
 
 MIT
