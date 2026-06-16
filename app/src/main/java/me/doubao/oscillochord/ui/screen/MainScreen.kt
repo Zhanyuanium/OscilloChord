@@ -4,25 +4,32 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import me.doubao.oscillochord.ui.keyboard.KeyboardViewModel
+import me.doubao.oscillochord.ui.keyboard.PianoKeyboard
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    keyboardVM: KeyboardViewModel = viewModel()
+) {
+    val keyboardState by keyboardVM.state.collectAsStateWithLifecycle()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Top half: info panel + oscilloscope + settings panel
+        // Top half: info + oscilloscope + settings (placeholder)
         Row(
             modifier = Modifier
-                .weight(1f)
+                .weight(0.55f)
                 .fillMaxWidth()
         ) {
-            // Left: info panel
             Box(
                 modifier = Modifier
                     .weight(0.18f)
@@ -31,59 +38,39 @@ fun MainScreen() {
                     .padding(12.dp),
                 contentAlignment = Alignment.TopStart
             ) {
-                Text(
-                    text = "和弦信息",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Text("和弦信息", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
             }
-
-            // Center: oscilloscope
             Box(
                 modifier = Modifier
-                    .weight(0.64f)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(16.dp),
+                    .weight(0.62f)
+                    .fillMaxHeight(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "示波器",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Text("示波器", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
             }
-
-            // Right: settings panel
             Box(
                 modifier = Modifier
-                    .weight(0.18f)
+                    .weight(0.20f)
                     .fillMaxHeight()
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(12.dp),
                 contentAlignment = Alignment.TopStart
             ) {
-                Text(
-                    text = "设置",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Text("设置", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
             }
         }
 
-        // Bottom half: piano keyboard
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "钢琴键盘",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
+        // Bottom: piano keyboard
+        PianoKeyboard(
+            state = keyboardState,
+            onNoteOn = { keyboardVM.noteOn(it) },
+            onNoteOff = { keyboardVM.noteOff(it) },
+            onNoteSlide = { from, to -> keyboardVM.noteSlide(from, to) },
+            onOctaveShift = { delta ->
+                if (delta > 0) keyboardVM.shiftOctaveUp()
+                else keyboardVM.shiftOctaveDown()
+            },
+            modifier = Modifier.fillMaxWidth().weight(0.45f)
+        )
     }
 }
