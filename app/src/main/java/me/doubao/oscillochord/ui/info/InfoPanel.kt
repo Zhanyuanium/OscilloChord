@@ -66,7 +66,7 @@ fun InfoPanel(
                     Text(
                         text = note.name,
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(0.35f),
                         color = if (note.isRoot) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurface
                     )
@@ -74,13 +74,14 @@ fun InfoPanel(
                         text = note.intervalFromRoot,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        modifier = Modifier.width(60.dp),
+                        modifier = Modifier.weight(0.25f),
                         textAlign = TextAlign.End
                     )
                     Text(
                         text = "${"%.2f".format(Locale.ROOT, note.frequencyHz)}Hz",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(0.4f),
                         textAlign = TextAlign.End
                     )
                 }
