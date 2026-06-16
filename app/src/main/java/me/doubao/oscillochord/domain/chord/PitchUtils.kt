@@ -18,12 +18,12 @@ object PitchUtils {
 
     fun midiNoteToName(midiNote: Int, preferFlat: Boolean = false): String {
         val pc = pitchClass(midiNote)
-        val octave = (midiNote / 12) - 1
+        val octave = Math.floorDiv(midiNote, 12) - 1
         val noteNames = if (preferFlat) NOTE_NAMES_FLAT else NOTE_NAMES_SHARP
         return "${noteNames[pc]}$octave"
     }
 
-    fun pitchClass(midiNote: Int): Int = midiNote % 12
+    fun pitchClass(midiNote: Int): Int = Math.floorMod(midiNote, 12)
 
     fun intervalName(semitones: Int): String = when (semitones) {
         0 -> "根音"
