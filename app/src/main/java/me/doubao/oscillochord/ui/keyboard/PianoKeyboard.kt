@@ -98,7 +98,7 @@ fun PianoKeyboard(
 
     Canvas(
         modifier = modifier.fillMaxWidth()
-            .pointerInput(state.octaveStart, state.octaveCount, state.blackKeyLayout) {
+            .pointerInput(state.octaveStart, state.octaveCount, state.blackKeyLayout, state.slideMode) {
                     awaitPointerEventScope {
                         while (true) {
                             val event = awaitPointerEvent()
