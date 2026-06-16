@@ -8,14 +8,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 class AudioEngine {
     val sampleRate = 44100
-    private val bufferSize: Int by lazy {
-        try {
-            // Use 2x the minimum buffer to avoid underruns and clicks
-            AudioTrack.getMinBufferSize(
-                sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT
-            ) * 2
-        } catch (e: RuntimeException) { 4096 }
-    }
 
     private var audioTrack: AudioTrack? = null
     private val oscillators = ConcurrentHashMap<Int, Oscillator>()
@@ -45,38 +37,37 @@ class AudioEngine {
 
     fun noteOff(midiNote: Int) {
         oscillators.remove(midiNote)
-        if (oscillators.isEmpty()) stop()
+        // Don't stop the engine — single coroutine handles empty state gracefully
     }
+
+    // Single long-lived coroutine — no race between stop/start tear-down
+    private var engineRunning = false
 
     private fun ensurePlaying() {
-        if (audioTrack?.playState == AudioTrack.PLAYSTATE_PLAYING) return
-        start()
-    }
+        if (engineRunning) return
+        engineRunning = true
 
-    private fun start() {
-        try {
-            audioTrack = AudioTrack.Builder()
-                .setAudioAttributes(AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
-                .setAudioFormat(AudioFormat.Builder()
-                    .setSampleRate(sampleRate).setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build())
-                .setBufferSizeInBytes(bufferSize).build()
-            audioTrack?.play()
-        } catch (e: RuntimeException) {
-            audioTrack = null; return
-        }
-
+        job?.cancel()
         job = scope.launch {
-            val bufSize = bufferSize / 2
-            val buffer = ShortArray(bufSize)
             var smoothCount = 1.0f
+
             while (isActive) {
                 val active = HashMap(oscillators)
-                if (active.isEmpty()) break
+                if (active.isEmpty()) {
+                    // Idle: release audio hardware to save battery
+                    releaseAudioTrack()
+                    // Wait for new notes
+                    delay(50)
+                    continue
+                }
+
+                // Ensure audio track is ready
+                val track = ensureAudioTrack() ?: continue
+
+                val bufSize = track.bufferSizeInFrames
+                val buffer = ShortArray(bufSize)
                 val targetCount = active.size.toFloat().coerceAtLeast(1f)
-                val lerpSpeed = 0.005f // smooth transition over ~200 samples ≈ 4.5ms
+                val lerpSpeed = 0.005f
 
                 for (i in buffer.indices) {
                     smoothCount += (targetCount - smoothCount) * lerpSpeed
@@ -88,18 +79,44 @@ class AudioEngine {
                     buffer[i] = (sum * Short.MAX_VALUE * 0.9f).toInt()
                         .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
                 }
-                audioTrack?.write(buffer, 0, buffer.size)
+                track.write(buffer, 0, buffer.size)
             }
         }
     }
 
-    private fun stop() {
-        job?.cancel(); job = null
-        audioTrack?.stop(); audioTrack?.release()
-        audioTrack = null
+    private fun ensureAudioTrack(): AudioTrack? {
+        if (audioTrack?.playState == AudioTrack.PLAYSTATE_PLAYING) return audioTrack
+        releaseAudioTrack()
+        return try {
+            val bufSize = AudioTrack.getMinBufferSize(
+                sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT
+            ) * 2
+            AudioTrack.Builder()
+                .setAudioAttributes(AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
+                .setAudioFormat(AudioFormat.Builder()
+                    .setSampleRate(sampleRate).setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build())
+                .setBufferSizeInBytes(bufSize).build()
+                .also { it.play(); audioTrack = it }
+        } catch (e: RuntimeException) { null }
     }
 
-    fun destroy() { oscillators.clear(); stop(); scope.cancel() }
+    private fun releaseAudioTrack() {
+        val t = audioTrack
+        audioTrack = null
+        try { t?.stop() } catch (_: Exception) {}
+        try { t?.release() } catch (_: Exception) {}
+    }
+
+    fun destroy() {
+        engineRunning = false
+        job?.cancel()
+        releaseAudioTrack()
+        oscillators.clear()
+        scope.cancel()
+    }
 
     val activeNoteCount: Int get() = oscillators.size
 }

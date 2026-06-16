@@ -43,11 +43,10 @@ fun OscilloscopeView(
         }
     }
 
+    val cardBg = MaterialTheme.colorScheme.surfaceContainerLow
     Card(
         modifier = modifier.padding(4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF0D0D1A)
-        )
+        colors = CardDefaults.cardColors(containerColor = cardBg)
     ) {
         Canvas(modifier = Modifier.fillMaxSize().padding(4.dp)) {
             drawSubtleGrid()
@@ -57,7 +56,7 @@ fun OscilloscopeView(
 }
 
 private fun DrawScope.drawSubtleGrid() {
-    val gridColor = Color(0xFF141428)
+    val gridColor = Color(0xFF1A1A30)
     val cx = size.width / 2f
     val cy = size.height / 2f
     val step = 50f
@@ -73,7 +72,7 @@ private fun DrawScope.drawSubtleGrid() {
         y += step
     }
     // Center crosshair
-    val axisColor = Color(0xFF1E1E3A)
+    val axisColor = Color(0xFF2A2A4A)
     drawLine(axisColor, Offset(cx, 0f), Offset(cx, size.height), strokeWidth = 1f)
     drawLine(axisColor, Offset(0f, cy), Offset(size.width, cy), strokeWidth = 1f)
 }
