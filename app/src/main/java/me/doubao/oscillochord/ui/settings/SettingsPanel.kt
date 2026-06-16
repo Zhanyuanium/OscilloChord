@@ -127,20 +127,22 @@ fun SettingsPanel(
                     valueRange = 415f..466f)
 
                 Spacer(Modifier.height(8.dp))
-                Text("律制", style = MaterialTheme.typography.bodySmall)
-                Spacer(Modifier.height(4.dp))
-                val tuningOptions = listOf(
-                    "EQUAL" to "十二平均律",
-                    "JUST" to "纯律",
-                    "PYTHAGOREAN" to "五度相生率"
-                )
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    tuningOptions.forEachIndexed { index, (key, label) ->
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(index, tuningOptions.size),
-                            onClick = { onTuningSystemChange(key) },
-                            selected = state.tuningSystem == key
-                        ) { Text(label, style = MaterialTheme.typography.bodySmall) }
+                var tuningExpanded by remember { mutableStateOf(false) }
+                val tuningOptions = listOf("EQUAL" to "十二平均律", "JUST" to "纯律", "PYTHAGOREAN" to "五度相生率")
+                val tuningLabel = tuningOptions.find { it.first == state.tuningSystem }?.second ?: "十二平均律"
+                ExposedDropdownMenuBox(expanded = tuningExpanded, onExpandedChange = { tuningExpanded = it }) {
+                    OutlinedTextField(
+                        value = tuningLabel, onValueChange = {}, readOnly = true,
+                        label = { Text("律制") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(tuningExpanded) },
+                        modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                        textStyle = MaterialTheme.typography.bodySmall
+                    )
+                    ExposedDropdownMenu(expanded = tuningExpanded, onDismissRequest = { tuningExpanded = false }) {
+                        tuningOptions.forEach { (key, label) ->
+                            DropdownMenuItem(text = { Text(label) },
+                                onClick = { onTuningSystemChange(key); tuningExpanded = false })
+                        }
                     }
                 }
             }

@@ -24,7 +24,7 @@ class OscilloscopeViewModel : ViewModel() {
 
     companion object {
         private const val SAMPLES_PER_FRAME = 256
-        private const val MAX_TRAIL = 16384
+        private const val MAX_TRAIL = 4096
     }
 
     fun syncWith(
