@@ -4,15 +4,9 @@ A real-time oscilloscope for musical chords on Android. Press keys on the virtua
 
 [中文文档](README_zh.md)
 
-## Screenshots
+![main1](docs/screenshots/main1.png)
 
-| Main screen | Settings |
-|-------------|----------|
-| ![main](docs/screenshots/main.png) | ![settings](docs/screenshots/settings.png) |
-
-> **Expected screenshots:**
-> - `main.png` — single octave, equal-width keys, hidden labels, flat naming, sine wave, just intonation, wide layout. Show a C major chord with the oscilloscope displaying its Lissajous pattern and the info panel listing the notes.
-> - `settings.png` — scroll to show keyboard and audio sections with all options visible.
+![main2](docs/screenshots/main2.png)
 
 ## Features
 
