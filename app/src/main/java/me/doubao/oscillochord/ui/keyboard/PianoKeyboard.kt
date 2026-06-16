@@ -127,13 +127,13 @@ fun PianoKeyboard(
                                                 }
                                             }
                                             SlideMode.SHIFT_OCTAVE -> {
+                                                val dx = pointer.position.x - pointer.previousPosition.x
                                                 if (dragPointerId < 0) dragPointerId = pid
                                                 if (pid == dragPointerId) {
-                                                    val dx = pointer.position.x - pointer.previousPosition.x
                                                     dragOffset += dx
                                                     velocitySamples.add(System.nanoTime() to dx)
                                                     while (velocitySamples.size > 20) velocitySamples.removeAt(0)
-                                                    isDragging = true
+                                                    if (abs(dragOffset) > octW() * 0.15f) isDragging = true
                                                 }
                                             }
                                         }
@@ -230,28 +230,22 @@ private fun DrawScope.drawLabel(t: String, x: Float, y: Float, s: Float, c: Int)
 
 private fun hitTest(x: Float, y: Float, tw: Float, th: Float, state: KeyboardState, extra: Int): Int? {
     val bc = state.octaveCount
+    val fo = -extra; val lo = bc + extra - 1
     if (state.blackKeyLayout == BlackKeyLayout.EQUAL_WIDTH) {
-        val kw = tw / (bc * 12)
-        val idx = (x / kw).toInt()
-        // idx directly maps to note: note = octaveStart + idx (same as drawing formula)
-        if (idx < -extra * 12 || idx >= (bc + extra) * 12) return null
-        return state.octaveStart + idx
+        val kw = tw / (bc * 12); val idx = (x / kw).toInt()
+        val total = (lo - fo + 1) * 12
+        if (idx < 0 || idx >= total) return null
+        return state.octaveStart + fo * 12 + idx
     } else {
-        val wk = tw / (bc * 7)
-        // Direct iteration mirrors drawPianoKeys exactly: same x positions, same notes
-        val bk = wk * 0.6f
-        if (y < th * 0.62f) {
-            for (oct in -extra until bc + extra)
-                for ((wi, st) in BLACK_KEY_DATA) {
-                    val kl = (oct * 7 + wi) * wk + wk * 0.7f
-                    if (x in kl..(kl + bk)) return state.octaveStart + oct * 12 + st
-                }
-        }
-        for (oct in -extra until bc + extra)
-            for ((wi, st) in WHITE_KEY_OFFSETS.withIndex()) {
-                val kl = (oct * 7 + wi) * wk
-                if (x in kl..(kl + wk)) return state.octaveStart + oct * 12 + st
+        val wk = tw / (bc * 7); val bk = wk * 0.6f
+        if (y < th * 0.62f)
+            for (o in fo..lo) for ((wi, st) in BLACK_KEY_DATA) {
+                val kl = (o * 7 + wi) * wk + wk * 0.7f
+                if (x in kl..(kl + bk)) return state.octaveStart + o * 12 + st
             }
-        return null
+        val total = (lo - fo + 1) * 7
+        val wi = (x / wk).toInt()
+        if (wi < 0 || wi >= total) return null
+        return state.octaveStart + (wi / 7 + fo) * 12 + WHITE_KEY_OFFSETS[wi % 7]
     }
 }
