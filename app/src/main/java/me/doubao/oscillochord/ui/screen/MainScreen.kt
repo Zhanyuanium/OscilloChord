@@ -31,11 +31,6 @@ fun MainScreen(
     val infoState by infoVM.state.collectAsStateWithLifecycle()
     val settingsState by settingsVM.state.collectAsStateWithLifecycle()
 
-    // Wire audio samples → oscilloscope
-    LaunchedEffect(Unit) {
-        oscilloscopeVM.collectSamples(keyboardVM.sampleSnapshot)
-    }
-
     // Wire active notes → info panel
     LaunchedEffect(keyboardState.activeNotes) {
         infoVM.updateNotes(keyboardState.activeNotes, settingsState.baseFrequency)
@@ -81,7 +76,10 @@ fun MainScreen(
                 modifier = Modifier.weight(0.18f).fillMaxHeight()
             )
             OscilloscopeView(
-                state = oscilloscopeState,
+                activeNotes = keyboardState.activeNotes,
+                baseFrequency = settingsState.baseFrequency,
+                waveform = Waveform.valueOf(settingsState.waveform),
+                viewModel = oscilloscopeVM,
                 modifier = Modifier.weight(0.62f).fillMaxHeight()
             )
             SettingsPanel(

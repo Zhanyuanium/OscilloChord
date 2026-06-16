@@ -7,8 +7,10 @@ import kotlin.math.sin
 class LissajousProjector {
     /**
      * Scheme A: Rotation projection.
-     * Maps N signals to 2D by assigning each an equally-spaced angle.
-     * N=2 degenerates to classic Lissajous: x = s0, y = s1.
+     * Maps N signals to 2D by equally-spaced angles.
+     * N=2 → classic Lissajous (x=s0, y=s1).
+     * N≥3 → rotation projection with angles 2π·i/N.
+     * N=1 → caller should provide a delayed second signal for elliptical display.
      */
     fun project(samples: FloatArray): Pair<Float, Float> {
         val n = samples.size
