@@ -70,11 +70,13 @@ fun PianoKeyboard(
             spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow),
             initialVelocity = req.velocityPxPerSec / 1000f
         )
-        val absorbed = (snapTarget / ow).roundToInt()
-        if (absorbed != 0) onOctaveShift(-absorbed)
+        // Reset visual offset BEFORE shifting octaveStart — otherwise
+        // the triggered recomposition sees the stale snapTarget value.
         scrollAnim.snapTo(0f)
         rawOffset = 0f
         isAnimating = false
+        val absorbed = (snapTarget / ow).roundToInt()
+        if (absorbed != 0) onOctaveShift(-absorbed)
     }
 
     // Handle simple reset (tiny drag movement)
