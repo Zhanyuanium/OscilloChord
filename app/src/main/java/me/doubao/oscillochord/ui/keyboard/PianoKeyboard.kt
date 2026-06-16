@@ -86,10 +86,11 @@ fun PianoKeyboard(
     }
 
     val displayOffset = if (isDragging) rawOffset else scrollAnim.value
-    val needsExtended = isDragging || isAnimating
-    val drawState = if (needsExtended)
-        state.copy(octaveStart = state.octaveStart - 12, octaveCount = state.octaveCount + 2)
-    else state
+    val extraOctaves = if (isDragging || isAnimating) 1 else 0
+    // hit-test range: original ± extraOctaves
+    val hitStart = state.octaveStart - extraOctaves * 12
+    val hitCount = state.octaveCount + extraOctaves * 2
+    val hitState = state.copy(octaveStart = hitStart, octaveCount = hitCount)
 
     Canvas(
         modifier = modifier.fillMaxWidth()
@@ -104,7 +105,7 @@ fun PianoKeyboard(
                                 pointer.pressed && !pointer.previousPressed -> {
                                     velocitySamples.clear()
                                     hitTest(pointer.position.x - displayOffset, pointer.position.y,
-                                        size.width.toFloat(), size.height.toFloat(), drawState
+                                        size.width.toFloat(), size.height.toFloat(), hitState
                                     )?.let { pointerToNote[pid] = it; onNoteOn(it) }
                                 }
                                 pointer.pressed && pointer.previousPressed -> {
@@ -113,7 +114,7 @@ fun PianoKeyboard(
                                         SlideMode.FOLLOW_KEYS -> {
                                             val cur = hitTest(pointer.position.x - displayOffset,
                                                 pointer.position.y,
-                                                size.width.toFloat(), size.height.toFloat(), drawState
+                                                size.width.toFloat(), size.height.toFloat(), hitState
                                             )
                                             if (cur != null && cur != prev) {
                                                 onNoteSlide(prev, cur); pointerToNote[pid] = cur
@@ -152,8 +153,8 @@ fun PianoKeyboard(
     ) {
         canvasWidth = size.width
         withTransform({ translate(left = displayOffset) }) {
-            if (state.blackKeyLayout == BlackKeyLayout.EQUAL_WIDTH) drawEqualWidthKeys(drawState, primaryColor)
-            else drawPianoKeys(drawState, primaryColor)
+            if (state.blackKeyLayout == BlackKeyLayout.EQUAL_WIDTH) drawEqualWidthKeys(state, extraOctaves, primaryColor)
+            else drawPianoKeys(state, extraOctaves, primaryColor)
         }
     }
 }
@@ -170,15 +171,20 @@ private fun computeVelocity(samples: List<Pair<Long, Float>>): Float {
 
 // --- Drawing ---
 
-private fun DrawScope.drawPianoKeys(state: KeyboardState, primaryColor: androidx.compose.ui.graphics.Color) {
-    val totalWhiteKeys = state.octaveCount * 7
+private fun DrawScope.drawPianoKeys(
+    state: KeyboardState, extraOctaves: Int, primaryColor: androidx.compose.ui.graphics.Color
+) {
+    val baseCount = state.octaveCount
+    val totalWhiteKeys = baseCount * 7
     val whiteKeyWidth = size.width / totalWhiteKeys
     val blackKeyWidth = whiteKeyWidth * 0.6f
     val blackKeyHeight = size.height * 0.62f
     val whiteCorner = CornerRadius(10f, 10f)
     val blackCorner = CornerRadius(8f, 8f)
     val gap = 3f
-    for (octave in 0 until state.octaveCount) {
+    val firstOctave = -extraOctaves
+    val lastOctave = baseCount + extraOctaves - 1
+    for (octave in firstOctave..lastOctave) {
         for ((wi, semitone) in WHITE_KEY_OFFSETS.withIndex()) {
             val midiNote = state.octaveStart + octave * 12 + semitone
             val x = (octave * 7 + wi) * whiteKeyWidth
@@ -191,7 +197,7 @@ private fun DrawScope.drawPianoKeys(state: KeyboardState, primaryColor: androidx
                 if (isActive) 0xFFFFFFFF.toInt() else 0xFF666666.toInt())
         }
     }
-    for (octave in 0 until state.octaveCount) {
+    for (octave in firstOctave..lastOctave) {
         for ((whiteIndex, semitone) in BLACK_KEY_DATA) {
             val midiNote = state.octaveStart + octave * 12 + semitone
             val x = (octave * 7 + whiteIndex) * whiteKeyWidth + whiteKeyWidth * 0.7f
@@ -205,12 +211,17 @@ private fun DrawScope.drawPianoKeys(state: KeyboardState, primaryColor: androidx
     }
 }
 
-private fun DrawScope.drawEqualWidthKeys(state: KeyboardState, primaryColor: androidx.compose.ui.graphics.Color) {
-    val totalKeys = state.octaveCount * 12
+private fun DrawScope.drawEqualWidthKeys(
+    state: KeyboardState, extraOctaves: Int, primaryColor: androidx.compose.ui.graphics.Color
+) {
+    val baseCount = state.octaveCount
+    val totalKeys = baseCount * 12
     val keyWidth = size.width / totalKeys
     val cornerRadius = CornerRadius(8f, 8f)
     val gap = 3f
-    for (octave in 0 until state.octaveCount) {
+    val firstOctave = -extraOctaves
+    val lastOctave = baseCount + extraOctaves - 1
+    for (octave in firstOctave..lastOctave) {
         for (semitone in 0 until 12) {
             val midiNote = state.octaveStart + octave * 12 + semitone
             val x = (octave * 12 + semitone) * keyWidth

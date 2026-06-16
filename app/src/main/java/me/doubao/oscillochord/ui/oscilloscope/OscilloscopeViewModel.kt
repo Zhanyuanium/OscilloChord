@@ -22,10 +22,9 @@ class OscilloscopeViewModel : ViewModel() {
     private val _state = MutableStateFlow(OscilloscopeState())
     val state: StateFlow<OscilloscopeState> = _state.asStateFlow()
 
-    companion object {
-        private const val SAMPLES_PER_FRAME = 256
-        private const val MAX_TRAIL = 4096
-    }
+    companion object { private const val SAMPLES_PER_FRAME = 256 }
+
+    var maxTrail: Int = 4096
 
     fun syncWith(
         activeNotes: Set<Int>,
@@ -76,7 +75,7 @@ class OscilloscopeViewModel : ViewModel() {
         }
 
         // Trim trail
-        while (points.size > MAX_TRAIL) {
+        while (points.size > maxTrail) {
             points.subList(0, SAMPLES_PER_FRAME).clear()
         }
 

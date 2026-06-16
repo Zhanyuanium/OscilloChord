@@ -21,6 +21,7 @@ fun SettingsPanel(
     onBaseFrequencyChange: (Double) -> Unit,
     onTuningSystemChange: (String) -> Unit,
     onTrailFadeChange: (Boolean) -> Unit,
+    onTrailLengthChange: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -164,6 +165,19 @@ fun SettingsPanel(
                         modifier = Modifier.weight(1f))
                     Switch(checked = state.trailFadeEnabled,
                         onCheckedChange = onTrailFadeChange)
+                }
+                Spacer(Modifier.height(8.dp))
+                Text("轨迹长度", style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(4.dp))
+                val trailOptions = listOf(4096 to "短", 8192 to "中", 16384 to "长")
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    trailOptions.forEachIndexed { index, (len, label) ->
+                        SegmentedButton(
+                            shape = SegmentedButtonDefaults.itemShape(index, trailOptions.size),
+                            onClick = { onTrailLengthChange(len) },
+                            selected = state.trailLength == len
+                        ) { Text(label, style = MaterialTheme.typography.bodySmall) }
+                    }
                 }
             }
         }

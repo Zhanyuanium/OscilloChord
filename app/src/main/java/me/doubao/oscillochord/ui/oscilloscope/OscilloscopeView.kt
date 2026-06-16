@@ -27,11 +27,14 @@ fun OscilloscopeView(
     waveform: Waveform,
     tuningSystem: TuningSystem = TuningSystem.EQUAL,
     trailFadeEnabled: Boolean = true,
+    trailLength: Int = 4096,
     viewModel: OscilloscopeViewModel,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val trailColor = MaterialTheme.colorScheme.primary
+
+    LaunchedEffect(trailLength) { viewModel.maxTrail = trailLength }
 
     LaunchedEffect(activeNotes, baseFrequency, waveform, tuningSystem) {
         viewModel.syncWith(activeNotes, baseFrequency, waveform, tuningSystem)

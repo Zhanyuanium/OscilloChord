@@ -97,6 +97,7 @@ fun MainScreen(
                     waveform = Waveform.valueOf(settingsState.waveform),
                     tuningSystem = TuningSystem.valueOf(settingsState.tuningSystem),
                     trailFadeEnabled = settingsState.trailFadeEnabled,
+                    trailLength = settingsState.trailLength,
                     viewModel = oscilloscopeVM,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -111,6 +112,7 @@ fun MainScreen(
                 onBaseFrequencyChange = { settingsVM.setBaseFrequency(it) },
                 onTuningSystemChange = { settingsVM.setTuningSystem(it) },
                 onTrailFadeChange = { settingsVM.setTrailFadeEnabled(it) },
+                onTrailLengthChange = { settingsVM.setTrailLength(it) },
                 modifier = Modifier
                     .width(240.dp)
                     .fillMaxHeight()

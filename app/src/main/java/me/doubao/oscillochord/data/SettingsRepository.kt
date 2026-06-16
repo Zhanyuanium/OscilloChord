@@ -20,6 +20,7 @@ class SettingsRepository(private val context: Context) {
         val KEY_BASE_FREQUENCY = doublePreferencesKey("base_frequency")
         val KEY_TUNING_SYSTEM = stringPreferencesKey("tuning_system")
         val KEY_TRAIL_FADE = booleanPreferencesKey("trail_fade_enabled")
+        val KEY_TRAIL_LENGTH = intPreferencesKey("trail_length")
     }
 
     val settings: Flow<Map<String, Any>> = context.dataStore.data.map { prefs ->
@@ -32,7 +33,8 @@ class SettingsRepository(private val context: Context) {
             "waveform" to (prefs[KEY_WAVEFORM] ?: "SINE"),
             "base_frequency" to (prefs[KEY_BASE_FREQUENCY] ?: 440.0),
             "tuning_system" to (prefs[KEY_TUNING_SYSTEM] ?: "EQUAL"),
-            "trail_fade_enabled" to (prefs[KEY_TRAIL_FADE] ?: true)
+            "trail_fade_enabled" to (prefs[KEY_TRAIL_FADE] ?: true),
+            "trail_length" to (prefs[KEY_TRAIL_LENGTH] ?: 4096)
         )
     }
 
@@ -45,4 +47,5 @@ class SettingsRepository(private val context: Context) {
     suspend fun setBaseFrequency(hz: Double) { context.dataStore.edit { it[KEY_BASE_FREQUENCY] = hz } }
     suspend fun setTuningSystem(system: String) { context.dataStore.edit { it[KEY_TUNING_SYSTEM] = system } }
     suspend fun setTrailFadeEnabled(enabled: Boolean) { context.dataStore.edit { it[KEY_TRAIL_FADE] = enabled } }
+    suspend fun setTrailLength(length: Int) { context.dataStore.edit { it[KEY_TRAIL_LENGTH] = length } }
 }
