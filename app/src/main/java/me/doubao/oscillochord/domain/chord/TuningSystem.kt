@@ -6,64 +6,33 @@ enum class TuningSystem(val displayName: String) {
     PYTHAGOREAN("五度相生率");
 
     fun frequencyForMidi(midiNote: Int, baseFrequency: Double = 440.0): Double {
-        val a4 = 69
-        val semitoneOffset = midiNote - a4
+        val pc = ((midiNote % 12) + 12) % 12
+        val octave = midiNote / 12 - 1  // A4 → octave 4
+        val a4Octave = 69 / 12 - 1      // = 4
+        val octaveDiff = octave - a4Octave
+
         return when (this) {
-            EQUAL -> baseFrequency * Math.pow(2.0, semitoneOffset / 12.0)
-            JUST -> justFrequency(midiNote, baseFrequency)
-            PYTHAGOREAN -> pythagoreanFrequency(midiNote, baseFrequency)
+            EQUAL -> baseFrequency * Math.pow(2.0, (midiNote - 69) / 12.0)
+            JUST -> {
+                // A4 = baseFrequency, other notes relative to A via ratio table
+                val ratioA = JUST_RATIOS[9] // A = 5/3
+                baseFrequency * (JUST_RATIOS[pc] / ratioA) * Math.pow(2.0, octaveDiff.toDouble())
+            }
+            PYTHAGOREAN -> {
+                val ratioA = PYTHAGOREAN_RATIOS[9] // A = 27/16
+                baseFrequency * (PYTHAGOREAN_RATIOS[pc] / ratioA) * Math.pow(2.0, octaveDiff.toDouble())
+            }
         }
     }
 
     companion object {
-        // Just intonation ratios relative to C (between 1 and 2)
         private val JUST_RATIOS = doubleArrayOf(
-            1.0,                      // C
-            16.0 / 15.0,              // C#
-            9.0 / 8.0,                // D
-            6.0 / 5.0,                // D#
-            5.0 / 4.0,                // E
-            4.0 / 3.0,                // F
-            45.0 / 32.0,              // F#
-            3.0 / 2.0,                // G
-            8.0 / 5.0,                // G#
-            5.0 / 3.0,                // A
-            9.0 / 5.0,                // A#
-            15.0 / 8.0                // B
+            1.0, 16.0/15.0, 9.0/8.0, 6.0/5.0, 5.0/4.0, 4.0/3.0,
+            45.0/32.0, 3.0/2.0, 8.0/5.0, 5.0/3.0, 9.0/5.0, 15.0/8.0
         )
-
-        // Pre-computed Pythagorean ratios (verified):
-        // C=1/1, C#=2187/2048, D=9/8, D#=32/27, E=81/64, F=4/3,
-        // F#=729/512, G=3/2, G#=128/81, A=27/16, A#=16/9, B=243/128
         private val PYTHAGOREAN_RATIOS = doubleArrayOf(
-            1.0,                      // C = 1/1
-            2187.0 / 2048.0,          // C#
-            9.0 / 8.0,                // D
-            32.0 / 27.0,              // D#
-            81.0 / 64.0,              // E
-            4.0 / 3.0,                // F
-            729.0 / 512.0,            // F#
-            3.0 / 2.0,                // G
-            128.0 / 81.0,             // G#
-            27.0 / 16.0,              // A
-            16.0 / 9.0,               // A#
-            243.0 / 128.0             // B
+            1.0, 2187.0/2048.0, 9.0/8.0, 32.0/27.0, 81.0/64.0, 4.0/3.0,
+            729.0/512.0, 3.0/2.0, 128.0/81.0, 27.0/16.0, 16.0/9.0, 243.0/128.0
         )
-    }
-
-    private fun justFrequency(midiNote: Int, baseFreq: Double): Double {
-        val pc = ((midiNote % 12) + 12) % 12
-        val octave = (midiNote / 12) - 1
-        // C4 (MIDI 60) relative to A4 (MIDI 69, 440 Hz)
-        val c4Freq = baseFreq * Math.pow(2.0, (60 - 69) / 12.0)
-        return c4Freq * Math.pow(2.0, octave - 4.0) * JUST_RATIOS[pc]
-    }
-
-    private fun pythagoreanFrequency(midiNote: Int, baseFreq: Double): Double {
-        val pc = ((midiNote % 12) + 12) % 12
-        val octave = (midiNote / 12) - 1
-        // C4 (MIDI 60) relative to A4 (MIDI 69, 440 Hz)
-        val c4Freq = baseFreq * Math.pow(2.0, (60 - 69) / 12.0)
-        return c4Freq * Math.pow(2.0, octave - 4.0) * PYTHAGOREAN_RATIOS[pc]
     }
 }

@@ -102,6 +102,7 @@ fun MainScreen(
                 onShowNoteLabelsChange = { settingsVM.setShowNoteLabels(it) },
                 onWaveformChange = { settingsVM.setWaveform(it) },
                 onBaseFrequencyChange = { settingsVM.setBaseFrequency(it) },
+                onTuningSystemChange = { settingsVM.setTuningSystem(it) },
                 modifier = Modifier
                     .width(240.dp)
                     .fillMaxHeight()
