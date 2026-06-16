@@ -66,34 +66,35 @@ class AudioEngine {
 
             if (track == null) { engineRunning = false; return@launch }
 
-            val bufSize = track.bufferSizeInFrames
-            val buffer = ShortArray(bufSize)
+            // Use small chunks (~12ms) for low latency. write() blocks until
+            // the audio HW consumes the chunk, so smaller = more responsive.
+            val chunkSize = 512
+            val chunk = ShortArray(chunkSize)
             var smoothCount = 1.0f
 
             while (isActive) {
                 val active = HashMap(oscillators)
                 val targetCount = active.size.toFloat().coerceAtLeast(1f)
-                val lerpSpeed = 0.005f
+                val lerpSpeed = 0.01f
 
                 if (active.isEmpty()) {
-                    // Write silence to keep AudioTrack alive and latency zero
-                    buffer.fill(0)
-                    track.write(buffer, 0, buffer.size)
+                    chunk.fill(0)
+                    track.write(chunk, 0, chunk.size)
                     smoothCount = 1.0f
                     continue
                 }
 
-                for (i in buffer.indices) {
+                for (i in chunk.indices) {
                     smoothCount += (targetCount - smoothCount) * lerpSpeed
                     var sum = 0.0f
                     for (osc in active.values) {
                         sum += osc.nextSample()
                     }
                     sum /= smoothCount
-                    buffer[i] = (sum * Short.MAX_VALUE * 0.9f).toInt()
+                    chunk[i] = (sum * Short.MAX_VALUE * 0.9f).toInt()
                         .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
                 }
-                track.write(buffer, 0, buffer.size)
+                track.write(chunk, 0, chunk.size)
             }
         }
     }
