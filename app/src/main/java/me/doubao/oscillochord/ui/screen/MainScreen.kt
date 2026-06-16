@@ -34,97 +34,57 @@ fun MainScreen(
     val infoState by infoVM.state.collectAsStateWithLifecycle()
     val settingsState by settingsVM.state.collectAsStateWithLifecycle()
 
-    // Wire active notes → info panel
     LaunchedEffect(keyboardState.activeNotes, settingsState.tuningSystem) {
         infoVM.updateNotes(keyboardState.activeNotes, settingsState.baseFrequency,
             TuningSystem.valueOf(settingsState.tuningSystem))
     }
 
-    // Wire settings → keyboard VM
-    LaunchedEffect(settingsState.octaveCount) {
-        keyboardVM.setOctaveCount(settingsState.octaveCount)
-    }
+    LaunchedEffect(settingsState.octaveCount) { keyboardVM.setOctaveCount(settingsState.octaveCount) }
     LaunchedEffect(settingsState.blackKeyLayout) {
-        keyboardVM.setBlackKeyLayout(
-            if (settingsState.blackKeyLayout == "PIANO") BlackKeyLayout.PIANO else BlackKeyLayout.EQUAL_WIDTH
-        )
+        keyboardVM.setBlackKeyLayout(if (settingsState.blackKeyLayout == "PIANO") BlackKeyLayout.PIANO else BlackKeyLayout.EQUAL_WIDTH)
     }
     LaunchedEffect(settingsState.slideMode) {
-        keyboardVM.setSlideMode(
-            if (settingsState.slideMode == "FOLLOW_KEYS") SlideMode.FOLLOW_KEYS else SlideMode.SHIFT_OCTAVE
+        keyboardVM.setSlideMode(if (settingsState.slideMode == "FOLLOW_KEYS") SlideMode.FOLLOW_KEYS else SlideMode.SHIFT_OCTAVE)
+    }
+    LaunchedEffect(settingsState.showNoteLabels) { keyboardVM.setShowNoteLabels(settingsState.showNoteLabels) }
+    LaunchedEffect(settingsState.waveform) { keyboardVM.setWaveform(Waveform.valueOf(settingsState.waveform)) }
+    LaunchedEffect(settingsState.baseFrequency) { keyboardVM.setBaseFrequency(settingsState.baseFrequency) }
+    LaunchedEffect(settingsState.tuningSystem) { keyboardVM.setTuningSystem(TuningSystem.valueOf(settingsState.tuningSystem)) }
+
+    val isWide = settingsState.viewMode == "WIDE"
+
+    val scopeBlock = @Composable {
+        OscilloscopeView(
+            activeNotes = keyboardState.activeNotes,
+            baseFrequency = settingsState.baseFrequency,
+            waveform = Waveform.valueOf(settingsState.waveform),
+            tuningSystem = TuningSystem.valueOf(settingsState.tuningSystem),
+            trailFadeEnabled = settingsState.trailFadeEnabled,
+            trailLength = settingsState.trailLength,
+            viewModel = oscilloscopeVM,
+            modifier = Modifier.fillMaxSize()
         )
     }
-    LaunchedEffect(settingsState.showNoteLabels) {
-        keyboardVM.setShowNoteLabels(settingsState.showNoteLabels)
-    }
-    LaunchedEffect(settingsState.waveform) {
-        keyboardVM.setWaveform(Waveform.valueOf(settingsState.waveform))
-    }
-    LaunchedEffect(settingsState.baseFrequency) {
-        keyboardVM.setBaseFrequency(settingsState.baseFrequency)
-    }
-    LaunchedEffect(settingsState.tuningSystem) {
-        keyboardVM.setTuningSystem(TuningSystem.valueOf(settingsState.tuningSystem))
+
+    val settingsBlock = @Composable {
+        SettingsPanel(
+            state = settingsState,
+            onOctaveCountChange = { settingsVM.setOctaveCount(it) },
+            onBlackKeyLayoutChange = { settingsVM.setBlackKeyLayout(it) },
+            onSlideModeChange = { settingsVM.setSlideMode(it) },
+            onShowNoteLabelsChange = { settingsVM.setShowNoteLabels(it) },
+            onWaveformChange = { settingsVM.setWaveform(it) },
+            onBaseFrequencyChange = { settingsVM.setBaseFrequency(it) },
+            onTuningSystemChange = { settingsVM.setTuningSystem(it) },
+            onTrailFadeChange = { settingsVM.setTrailFadeEnabled(it) },
+            onTrailLengthChange = { settingsVM.setTrailLength(it) },
+            onViewModeChange = { settingsVM.setViewMode(it) },
+            modifier = Modifier.width(240.dp).fillMaxHeight()
+        )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        // Top half — side panels fixed width, oscilloscope fills remainder
-        Row(
-            modifier = Modifier
-                .weight(0.55f)
-                .fillMaxWidth()
-        ) {
-            InfoPanel(
-                state = infoState,
-                modifier = Modifier
-                    .width(240.dp)
-                    .fillMaxHeight()
-            )
-            // Oscilloscope fills remaining width
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                OscilloscopeView(
-                    activeNotes = keyboardState.activeNotes,
-                    baseFrequency = settingsState.baseFrequency,
-                    waveform = Waveform.valueOf(settingsState.waveform),
-                    tuningSystem = TuningSystem.valueOf(settingsState.tuningSystem),
-                    trailFadeEnabled = settingsState.trailFadeEnabled,
-                    trailLength = settingsState.trailLength,
-                    viewModel = oscilloscopeVM,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            SettingsPanel(
-                state = settingsState,
-                onOctaveCountChange = { settingsVM.setOctaveCount(it) },
-                onBlackKeyLayoutChange = { settingsVM.setBlackKeyLayout(it) },
-                onSlideModeChange = { settingsVM.setSlideMode(it) },
-                onShowNoteLabelsChange = { settingsVM.setShowNoteLabels(it) },
-                onWaveformChange = { settingsVM.setWaveform(it) },
-                onBaseFrequencyChange = { settingsVM.setBaseFrequency(it) },
-                onTuningSystemChange = { settingsVM.setTuningSystem(it) },
-                onTrailFadeChange = { settingsVM.setTrailFadeEnabled(it) },
-                onTrailLengthChange = { settingsVM.setTrailLength(it) },
-                onViewModeChange = { settingsVM.setViewMode(it) },
-                modifier = Modifier
-                    .width(240.dp)
-                    .fillMaxHeight()
-            )
-        }
-
-        // Bottom: piano keyboard with background
-        Surface(
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.fillMaxWidth().weight(0.45f)
-        ) {
+    val keyboardBlock = @Composable {
+        Surface(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.fillMaxWidth()) {
             PianoKeyboard(
                 state = keyboardState,
                 onNoteOn = { keyboardVM.noteOn(it) },
@@ -133,6 +93,26 @@ fun MainScreen(
                 onOctaveShift = { delta -> keyboardVM.shiftOctaveBy(delta) },
                 modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 6.dp)
             )
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        if (isWide) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                InfoPanel(state = infoState, modifier = Modifier.width(240.dp).fillMaxHeight())
+                Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                    Box(modifier = Modifier.weight(0.55f).fillMaxWidth(), contentAlignment = Alignment.Center) { scopeBlock() }
+                    Box(modifier = Modifier.weight(0.45f).fillMaxWidth()) { keyboardBlock() }
+                }
+                settingsBlock()
+            }
+        } else {
+            Row(modifier = Modifier.weight(0.55f).fillMaxWidth()) {
+                InfoPanel(state = infoState, modifier = Modifier.width(240.dp).fillMaxHeight())
+                Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) { scopeBlock() }
+                settingsBlock()
+            }
+            Box(modifier = Modifier.weight(0.45f).fillMaxWidth()) { keyboardBlock() }
         }
     }
 }
