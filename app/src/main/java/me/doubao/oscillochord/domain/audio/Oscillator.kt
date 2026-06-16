@@ -1,19 +1,20 @@
 package me.doubao.oscillochord.domain.audio
 
 import kotlin.math.pow
+import me.doubao.oscillochord.domain.chord.TuningSystem
 
 class Oscillator(
     var midiNote: Int,
     var baseFrequency: Double = 440.0,
     var waveform: Waveform = Waveform.SINE,
-    var amplitude: Float = 1.0f
+    var amplitude: Float = 1.0f,
+    var tuningSystem: TuningSystem = TuningSystem.EQUAL
 ) {
     private var phase: Double = 0.0
 
     val frequency: Double
         get() {
-            val semitoneOffset = midiNote - 69 // A4 = MIDI 69
-            return baseFrequency * 2.0.pow(semitoneOffset / 12.0)
+            return tuningSystem.frequencyForMidi(midiNote, baseFrequency)
         }
 
     fun nextSample(): Float {

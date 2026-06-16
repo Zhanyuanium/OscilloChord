@@ -4,6 +4,7 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
 import kotlinx.coroutines.*
+import me.doubao.oscillochord.domain.chord.TuningSystem
 import java.util.concurrent.ConcurrentHashMap
 
 class AudioEngine {
@@ -22,6 +23,7 @@ class AudioEngine {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var baseFrequency = 440.0
     private var waveform = Waveform.SINE
+    private var tuningSystem = TuningSystem.EQUAL
 
     fun setBaseFrequency(hz: Double) {
         baseFrequency = hz
@@ -33,11 +35,17 @@ class AudioEngine {
         oscillators.values.forEach { it.waveform = waveform }
     }
 
+    fun setTuningSystem(system: TuningSystem) {
+        tuningSystem = system
+        oscillators.values.forEach { it.tuningSystem = system }
+    }
+
     fun noteOn(midiNote: Int) {
         if (oscillators.containsKey(midiNote)) return
         oscillators[midiNote] = Oscillator(
             midiNote = midiNote, baseFrequency = baseFrequency,
-            waveform = waveform, amplitude = 1.0f
+            waveform = waveform, amplitude = 1.0f,
+            tuningSystem = tuningSystem
         )
         ensurePlaying()
     }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import me.doubao.oscillochord.domain.chord.ChordDetector
 import me.doubao.oscillochord.domain.chord.ChordResult
 import me.doubao.oscillochord.domain.chord.PitchUtils
+import me.doubao.oscillochord.domain.chord.TuningSystem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +27,7 @@ class InfoViewModel : ViewModel() {
     private val _state = MutableStateFlow(InfoPanelState())
     val state: StateFlow<InfoPanelState> = _state.asStateFlow()
 
-    fun updateNotes(activeNotes: Set<Int>, baseFrequency: Double = 440.0) {
+    fun updateNotes(activeNotes: Set<Int>, baseFrequency: Double = 440.0, tuningSystem: TuningSystem = TuningSystem.EQUAL) {
         if (activeNotes.isEmpty()) {
             _state.value = InfoPanelState()
             return
@@ -47,7 +48,7 @@ class InfoViewModel : ViewModel() {
             NoteInfo(
                 midiNote = midi,
                 name = PitchUtils.midiNoteToName(midi),
-                frequencyHz = PitchUtils.midiNoteToFrequency(midi, baseFrequency),
+                frequencyHz = PitchUtils.midiNoteToFrequency(midi, baseFrequency, tuningSystem),
                 intervalFromRoot = interval,
                 isRoot = midi == rootNote
             )

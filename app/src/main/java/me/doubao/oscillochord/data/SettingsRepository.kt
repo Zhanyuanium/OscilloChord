@@ -18,6 +18,7 @@ class SettingsRepository(private val context: Context) {
         val KEY_SHOW_NOTE_LABELS = booleanPreferencesKey("show_note_labels")
         val KEY_WAVEFORM = stringPreferencesKey("waveform")
         val KEY_BASE_FREQUENCY = doublePreferencesKey("base_frequency")
+        val KEY_TUNING_SYSTEM = stringPreferencesKey("tuning_system")
     }
 
     val settings: Flow<Map<String, Any>> = context.dataStore.data.map { prefs ->
@@ -28,7 +29,8 @@ class SettingsRepository(private val context: Context) {
             "slide_mode" to (prefs[KEY_SLIDE_MODE] ?: "FOLLOW_KEYS"),
             "show_note_labels" to (prefs[KEY_SHOW_NOTE_LABELS] ?: true),
             "waveform" to (prefs[KEY_WAVEFORM] ?: "SINE"),
-            "base_frequency" to (prefs[KEY_BASE_FREQUENCY] ?: 440.0)
+            "base_frequency" to (prefs[KEY_BASE_FREQUENCY] ?: 440.0),
+            "tuning_system" to (prefs[KEY_TUNING_SYSTEM] ?: "EQUAL")
         )
     }
 
@@ -39,4 +41,5 @@ class SettingsRepository(private val context: Context) {
     suspend fun setShowNoteLabels(show: Boolean) { context.dataStore.edit { it[KEY_SHOW_NOTE_LABELS] = show } }
     suspend fun setWaveform(waveform: String) { context.dataStore.edit { it[KEY_WAVEFORM] = waveform } }
     suspend fun setBaseFrequency(hz: Double) { context.dataStore.edit { it[KEY_BASE_FREQUENCY] = hz } }
+    suspend fun setTuningSystem(system: String) { context.dataStore.edit { it[KEY_TUNING_SYSTEM] = system } }
 }

@@ -14,7 +14,8 @@ data class SettingsState(
     val slideMode: String = "FOLLOW_KEYS",
     val showNoteLabels: Boolean = true,
     val waveform: String = "SINE",
-    val baseFrequency: Double = 440.0
+    val baseFrequency: Double = 440.0,
+    val tuningSystem: String = "EQUAL"
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -32,7 +33,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     slideMode = prefs["slide_mode"] as? String ?: "FOLLOW_KEYS",
                     showNoteLabels = prefs["show_note_labels"] as? Boolean ?: true,
                     waveform = prefs["waveform"] as? String ?: "SINE",
-                    baseFrequency = prefs["base_frequency"] as? Double ?: 440.0
+                    baseFrequency = prefs["base_frequency"] as? Double ?: 440.0,
+                    tuningSystem = prefs["tuning_system"] as? String ?: "EQUAL"
                 )
             }
         }
@@ -44,4 +46,5 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setShowNoteLabels(show: Boolean) { viewModelScope.launch { repository.setShowNoteLabels(show) } }
     fun setWaveform(waveform: String) { viewModelScope.launch { repository.setWaveform(waveform) } }
     fun setBaseFrequency(hz: Double) { viewModelScope.launch { repository.setBaseFrequency(hz) } }
+    fun setTuningSystem(system: String) { viewModelScope.launch { repository.setTuningSystem(system) } }
 }

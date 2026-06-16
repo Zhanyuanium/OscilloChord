@@ -3,6 +3,7 @@ package me.doubao.oscillochord.ui.keyboard
 import androidx.lifecycle.ViewModel
 import me.doubao.oscillochord.domain.audio.AudioEngine
 import me.doubao.oscillochord.domain.audio.Waveform
+import me.doubao.oscillochord.domain.chord.TuningSystem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -84,6 +85,10 @@ class KeyboardViewModel : ViewModel() {
 
     fun setBaseFrequency(hz: Double) {
         audioEngine.setBaseFrequency(hz)
+    }
+
+    fun setTuningSystem(system: TuningSystem) {
+        audioEngine.setTuningSystem(system)
     }
 
     // MIDI integration

@@ -8,9 +8,12 @@ object PitchUtils {
     private val NOTE_NAMES_SHARP = arrayOf("C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B")
     private val NOTE_NAMES_FLAT = arrayOf("C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B")
 
-    fun midiNoteToFrequency(midiNote: Int, baseFrequency: Double = 440.0): Double {
-        val semitoneOffset = midiNote - A4_MIDI
-        return baseFrequency * 2.0.pow(semitoneOffset / 12.0)
+    fun midiNoteToFrequency(
+        midiNote: Int,
+        baseFrequency: Double = 440.0,
+        tuningSystem: TuningSystem = TuningSystem.EQUAL
+    ): Double {
+        return tuningSystem.frequencyForMidi(midiNote, baseFrequency)
     }
 
     fun midiNoteToName(midiNote: Int, preferFlat: Boolean = false): String {

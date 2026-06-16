@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import me.doubao.oscillochord.domain.audio.Oscillator
 import me.doubao.oscillochord.domain.audio.Waveform
+import me.doubao.oscillochord.domain.chord.TuningSystem
 import kotlin.math.sqrt
 import me.doubao.oscillochord.domain.lissajous.LissajousProjector
 
