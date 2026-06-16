@@ -67,7 +67,7 @@ fun MainScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Top half — fixed height, panels with min width
+        // Top half — side panels fixed width, oscilloscope fills remainder
         Row(
             modifier = Modifier
                 .weight(0.55f)
@@ -76,14 +76,13 @@ fun MainScreen(
             InfoPanel(
                 state = infoState,
                 modifier = Modifier
-                    .weight(0.18f)
+                    .width(240.dp)
                     .fillMaxHeight()
-                    .widthIn(min = 240.dp)
             )
-            // Oscilloscope centered in its area
+            // Oscilloscope fills remaining width
             Box(
                 modifier = Modifier
-                    .weight(0.62f)
+                    .weight(1f)
                     .fillMaxHeight(),
                 contentAlignment = Alignment.Center
             ) {
@@ -104,9 +103,8 @@ fun MainScreen(
                 onWaveformChange = { settingsVM.setWaveform(it) },
                 onBaseFrequencyChange = { settingsVM.setBaseFrequency(it) },
                 modifier = Modifier
-                    .weight(0.20f)
+                    .width(240.dp)
                     .fillMaxHeight()
-                    .widthIn(min = 240.dp)
             )
         }
 

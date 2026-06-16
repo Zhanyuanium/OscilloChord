@@ -16,6 +16,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import me.doubao.oscillochord.domain.chord.PitchUtils
 import me.doubao.oscillochord.ui.theme.OscilloBlackKey
 import me.doubao.oscillochord.ui.theme.OscilloWhiteKey
+import java.util.ConcurrentModificationException
 import kotlinx.coroutines.CancellationException
 
 private const val TAG = "PianoKeyboard"
@@ -34,7 +35,8 @@ fun PianoKeyboard(
     onOctaveShift: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pointerToNote = remember { mutableStateMapOf<Int, Int>() }
+    // Plain HashMap — NOT mutableStateMapOf — to avoid recomposition storms during fast slides
+    val pointerToNote = remember { mutableMapOf<Int, Int>() }
     var dragAccumulator by remember { mutableFloatStateOf(0f) }
     val primaryColor = MaterialTheme.colorScheme.primary
 
@@ -93,10 +95,17 @@ fun PianoKeyboard(
                                 }
                             }
                         } catch (e: CancellationException) {
-                            Log.d(TAG, "pointerInput cancelled")
+                            Log.d(TAG, "pointerInput cancelled", e)
+                            throw e
+                        } catch (e: IndexOutOfBoundsException) {
+                            Log.e(TAG, "CRASH IndexOOB — pointerToNote keys=${pointerToNote.keys} pid=${event.changes.firstOrNull()?.id?.value}", e)
+                            throw e
+                        } catch (e: ConcurrentModificationException) {
+                            Log.e(TAG, "CRASH ConcurrentMod — activeNotes=${state.activeNotes.size}", e)
                             throw e
                         } catch (e: Exception) {
-                            Log.e(TAG, "pointerInput error", e)
+                            Log.e(TAG, "CRASH unknown — pointerToNote.size=${pointerToNote.size}", e)
+                            throw e
                         }
                     }
                 }
