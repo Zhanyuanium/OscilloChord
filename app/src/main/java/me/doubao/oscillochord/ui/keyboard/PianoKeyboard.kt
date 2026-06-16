@@ -60,15 +60,17 @@ fun PianoKeyboard(
     var dragPointerId by remember { mutableStateOf(-1) }
     var canvasWidth by remember { mutableFloatStateOf(1f) }
     val scrollAnim = remember { Animatable(0f) }
-    var flingRequest by remember { mutableStateOf<FlingRequest?>(null) }
+    var flingCounter by remember { mutableStateOf(0) }
+    var pendingFling by remember { mutableStateOf<FlingRequest?>(null) }
     val velocitySamples = remember { mutableListOf<Pair<Long, Float>>() }
 
     fun octW(): Float = canvasWidth / state.octaveCount
 
     // Spring-animated fling + snap
-    LaunchedEffect(flingRequest) {
-        val req = flingRequest ?: return@LaunchedEffect
-        flingRequest = null
+    LaunchedEffect(flingCounter) {
+        if (flingCounter == 0) return@LaunchedEffect
+        val req = pendingFling ?: return@LaunchedEffect
+        pendingFling = null
         isAnimating = true
         val ow = octW()
         if (ow <= 0f) { isAnimating = false; return@LaunchedEffect }
@@ -157,7 +159,8 @@ fun PianoKeyboard(
                                 velocitySamples.clear()
                                 Log.d(TAG, "SNAP: dragOffset=$dragOffset ow=$ow vel=$vel")
                                 if (ow > 0f && abs(vel) > 0.1f && abs(dragOffset) > ow * 0.15f) {
-                                    flingRequest = FlingRequest(dragOffset, vel)
+                                    pendingFling = FlingRequest(dragOffset, vel)
+                                    flingCounter++
                                 } else {
                                     val delta = -(dragOffset / ow).roundToInt()
                                     if (delta != 0) onOctaveShift(delta)
