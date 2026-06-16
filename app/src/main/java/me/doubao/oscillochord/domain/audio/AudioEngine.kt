@@ -40,34 +40,48 @@ class AudioEngine {
         // Don't stop the engine — single coroutine handles empty state gracefully
     }
 
-    // Single long-lived coroutine — no race between stop/start tear-down
     private var engineRunning = false
 
     private fun ensurePlaying() {
         if (engineRunning) return
         engineRunning = true
-
         job?.cancel()
+
         job = scope.launch {
+            // Create AudioTrack once and keep it alive to avoid startup latency
+            val track = try {
+                val bufSize = AudioTrack.getMinBufferSize(
+                    sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT
+                ) * 2
+                AudioTrack.Builder()
+                    .setAudioAttributes(AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
+                    .setAudioFormat(AudioFormat.Builder()
+                        .setSampleRate(sampleRate).setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                        .setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build())
+                    .setBufferSizeInBytes(bufSize).build()
+                    .also { it.play(); audioTrack = it }
+            } catch (e: RuntimeException) { null }
+
+            if (track == null) { engineRunning = false; return@launch }
+
+            val bufSize = track.bufferSizeInFrames
+            val buffer = ShortArray(bufSize)
             var smoothCount = 1.0f
 
             while (isActive) {
                 val active = HashMap(oscillators)
-                if (active.isEmpty()) {
-                    // Idle: release audio hardware to save battery
-                    releaseAudioTrack()
-                    // Wait for new notes
-                    delay(50)
-                    continue
-                }
-
-                // Ensure audio track is ready
-                val track = ensureAudioTrack() ?: continue
-
-                val bufSize = track.bufferSizeInFrames
-                val buffer = ShortArray(bufSize)
                 val targetCount = active.size.toFloat().coerceAtLeast(1f)
                 val lerpSpeed = 0.005f
+
+                if (active.isEmpty()) {
+                    // Write silence to keep AudioTrack alive and latency zero
+                    buffer.fill(0)
+                    track.write(buffer, 0, buffer.size)
+                    smoothCount = 1.0f
+                    continue
+                }
 
                 for (i in buffer.indices) {
                     smoothCount += (targetCount - smoothCount) * lerpSpeed
@@ -84,36 +98,13 @@ class AudioEngine {
         }
     }
 
-    private fun ensureAudioTrack(): AudioTrack? {
-        if (audioTrack?.playState == AudioTrack.PLAYSTATE_PLAYING) return audioTrack
-        releaseAudioTrack()
-        return try {
-            val bufSize = AudioTrack.getMinBufferSize(
-                sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT
-            ) * 2
-            AudioTrack.Builder()
-                .setAudioAttributes(AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
-                .setAudioFormat(AudioFormat.Builder()
-                    .setSampleRate(sampleRate).setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build())
-                .setBufferSizeInBytes(bufSize).build()
-                .also { it.play(); audioTrack = it }
-        } catch (e: RuntimeException) { null }
-    }
-
-    private fun releaseAudioTrack() {
+    fun destroy() {
+        engineRunning = false
+        job?.cancel()
         val t = audioTrack
         audioTrack = null
         try { t?.stop() } catch (_: Exception) {}
         try { t?.release() } catch (_: Exception) {}
-    }
-
-    fun destroy() {
-        engineRunning = false
-        job?.cancel()
-        releaseAudioTrack()
         oscillators.clear()
         scope.cancel()
     }
