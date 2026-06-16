@@ -2,6 +2,8 @@ package me.doubao.oscillochord.ui.keyboard
 
 import android.graphics.Paint
 import android.util.Log
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +30,16 @@ private const val TAG = "PianoKeyboard"
 private val WHITE_KEY_OFFSETS = listOf(0, 2, 4, 5, 7, 9, 11)
 private val BLACK_KEY_DATA = listOf(0 to 1, 1 to 3, 3 to 6, 4 to 8, 5 to 10)
 
+private data class FlingRequest(val offset: Float, val velocityPxPerMs: Float)
+
+private fun computeVelocity(samples: List<Pair<Long, Float>>): Float {
+    if (samples.size < 2) return 0f
+    val dtNs = samples.last().first - samples.first().first
+    if (dtNs <= 0L) return 0f
+    val totalDx = samples.sumOf { it.second.toDouble() }.toFloat()
+    return totalDx / (dtNs / 1_000_000_000f) / 1000f // px/ms
+}
+
 @Composable
 fun PianoKeyboard(
     state: KeyboardState,
@@ -40,34 +52,53 @@ fun PianoKeyboard(
     val pointerToNote = remember { mutableMapOf<Int, Int>() }
     val primaryColor = MaterialTheme.colorScheme.primary
 
-    // Drag offset — only tracked from a single pointer to avoid multiplying
+    // Drag scroll state
     var dragOffset by remember { mutableFloatStateOf(0f) }
     var isDragging by remember { mutableStateOf(false) }
+    var isAnimating by remember { mutableStateOf(false) }
     var dragPointerId by remember { mutableStateOf(-1) }
     var canvasWidth by remember { mutableFloatStateOf(1f) }
-    var snapRequest by remember { mutableStateOf(0) }
+    val scrollAnim = remember { Animatable(0f) }
+    var flingRequest by remember { mutableStateOf<FlingRequest?>(null) }
+    val velocitySamples = remember { mutableListOf<Pair<Long, Float>>() }
 
     fun octW(): Float = canvasWidth / state.octaveCount
 
-    // When snap is requested (after drag ends), shift octave and reset
-    LaunchedEffect(snapRequest) {
-        if (snapRequest == 0) return@LaunchedEffect
-        val delta = snapRequest
-        Log.d(TAG, "SNAP requested: delta=$delta octaveStart=${state.octaveStart}")
-        snapRequest = 0
-        if (delta != 0) {
-            onOctaveShift(delta)
-            Log.d(TAG, "SNAP applied: called onOctaveShift($delta)")
-        }
+    // Spring-animated fling + snap
+    LaunchedEffect(flingRequest) {
+        val req = flingRequest ?: return@LaunchedEffect
+        flingRequest = null
+        isAnimating = true
+        val ow = octW()
+        if (ow <= 0f) { isAnimating = false; return@LaunchedEffect }
+        val projected = req.offset + req.velocityPxPerMs * 250f
+        val snapTarget = (projected / ow).roundToInt() * ow
+        Log.d(TAG, "FLING: offset=${req.offset} vel=${req.velocityPxPerMs} projected=$projected snapTarget=$snapTarget")
+        scrollAnim.snapTo(req.offset)
+        scrollAnim.animateTo(snapTarget,
+            spring(dampingRatio = 0.9f, stiffness = 150f),
+            initialVelocity = req.velocityPxPerMs
+        )
+        // Reset visual FIRST, then shift octave
+        scrollAnim.snapTo(0f)
         dragOffset = 0f
-        Log.d(TAG, "SNAP done: dragOffset=0 octaveStart=${state.octaveStart}")
+        isAnimating = false
+        val absorbed = -(snapTarget / ow).roundToInt()
+        if (absorbed != 0) onOctaveShift(absorbed)
+        Log.d(TAG, "FLING done: absorbed=$absorbed oct=${state.octaveStart}")
     }
 
-    // Dynamic extra octaves: enough to cover the scroll distance + padding
-    val extraOctaves = if (isDragging) {
+    val displayOffset = when {
+        isDragging -> dragOffset
+        isAnimating -> scrollAnim.value
+        else -> 0f
+    }
+    fun extraOctaves(): Int {
+        val off = abs(displayOffset)
         val ow = octW()
-        if (ow > 0f) maxOf(1, (abs(dragOffset) / ow).toInt() + 1) else 1
-    } else 0
+        return if (ow > 0f && off > 1f) maxOf(1, (off / ow).toInt() + 1)
+        else if (isDragging || isAnimating) 1 else 0
+    }
 
     Box(modifier = modifier.fillMaxWidth()) {
         Canvas(
@@ -80,12 +111,11 @@ fun PianoKeyboard(
                                 val pid = pointer.id.value.toInt()
                                 when {
                                     pointer.pressed && !pointer.previousPressed -> {
-                                        // Each new touch resets scroll state
-                                        if (!isDragging) dragOffset = 0f
+                                        if (!isDragging && !isAnimating) dragOffset = 0f
                                         hitTest(
-                                            pointer.position.x - dragOffset, pointer.position.y,
+                                            pointer.position.x - displayOffset, pointer.position.y,
                                             size.width.toFloat(), size.height.toFloat(),
-                                            state, extraOctaves
+                                            state, extraOctaves()
                                         )?.let { pointerToNote[pid] = it; onNoteOn(it) }
                                     }
                                     pointer.pressed && pointer.previousPressed -> {
@@ -93,9 +123,9 @@ fun PianoKeyboard(
                                         when (state.slideMode) {
                                             SlideMode.FOLLOW_KEYS -> {
                                                 val cur = hitTest(
-                                                    pointer.position.x - dragOffset, pointer.position.y,
+                                                    pointer.position.x - displayOffset, pointer.position.y,
                                                     size.width.toFloat(), size.height.toFloat(),
-                                                    state, extraOctaves
+                                                    state, extraOctaves()
                                                 )
                                                 if (cur != null && cur != prev) {
                                                     onNoteSlide(prev, cur); pointerToNote[pid] = cur
@@ -104,7 +134,10 @@ fun PianoKeyboard(
                                             SlideMode.SHIFT_OCTAVE -> {
                                                 if (dragPointerId < 0) dragPointerId = pid
                                                 if (pid == dragPointerId) {
-                                                    dragOffset += pointer.position.x - pointer.previousPosition.x
+                                                    val dx = pointer.position.x - pointer.previousPosition.x
+                                                    dragOffset += dx
+                                                    velocitySamples.add(System.nanoTime() to dx)
+                                                    while (velocitySamples.size > 20) velocitySamples.removeAt(0)
                                                     isDragging = true
                                                 }
                                             }
@@ -115,16 +148,18 @@ fun PianoKeyboard(
                                     }
                                 }
                             }
-                            // All pointers up → snap to nearest octave
                             if (isDragging && event.changes.all { !it.pressed }) {
                                 isDragging = false
                                 dragPointerId = -1
                                 val ow = octW()
-                                val delta = -(dragOffset / ow).roundToInt()
-                                Log.d(TAG, "SNAP calc: dragOffset=$dragOffset ow=$ow ratio=${dragOffset/ow} delta=$delta octaveStart=${state.octaveStart}")
-                                if (ow > 0f && delta != 0) {
-                                    snapRequest = delta
+                                val vel = computeVelocity(velocitySamples)
+                                velocitySamples.clear()
+                                Log.d(TAG, "SNAP: dragOffset=$dragOffset ow=$ow vel=$vel")
+                                if (ow > 0f && abs(vel) > 0.1f && abs(dragOffset) > ow * 0.15f) {
+                                    flingRequest = FlingRequest(dragOffset, vel)
                                 } else {
+                                    val delta = -(dragOffset / ow).roundToInt()
+                                    if (delta != 0) onOctaveShift(delta)
                                     dragOffset = 0f
                                 }
                             }
@@ -133,17 +168,18 @@ fun PianoKeyboard(
                 }
         ) {
             canvasWidth = size.width
-            withTransform({ translate(left = dragOffset) }) {
-                if (state.blackKeyLayout == BlackKeyLayout.EQUAL_WIDTH) drawEqualWidthKeys(state, extraOctaves, primaryColor)
-                else drawPianoKeys(state, extraOctaves, primaryColor)
+            val ext = extraOctaves()
+            withTransform({ translate(left = displayOffset) }) {
+                if (state.blackKeyLayout == BlackKeyLayout.EQUAL_WIDTH) drawEqualWidthKeys(state, ext, primaryColor)
+                else drawPianoKeys(state, ext, primaryColor)
             }
         }
 
         // Debug overlay
         if (state.slideMode == SlideMode.SHIFT_OCTAVE) {
             Text(
-                text = "drag=%.0f ow=%.0f drg=$isDragging ext=$extraOctaves oct=${state.octaveStart}".format(
-                    dragOffset, octW(), isDragging, extraOctaves, state.octaveStart
+                text = "off=%.0f ow=%.0f drg=$isDragging anim=$isAnimating ext=${extraOctaves()} oct=${state.octaveStart}".format(
+                    displayOffset, octW()
                 ),
                 color = Color.Yellow, style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.align(Alignment.TopStart).padding(4.dp)
