@@ -3,7 +3,8 @@ package me.doubao.oscillochord.ui.keyboard
 import android.graphics.Paint
 import android.util.Log
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -76,7 +77,7 @@ fun PianoKeyboard(
         Log.d(TAG, "FLING: offset=${req.offset} vel=${req.velocityPxPerMs} projected=$projected snapTarget=$snapTarget")
         scrollAnim.snapTo(req.offset)
         scrollAnim.animateTo(snapTarget,
-            spring(dampingRatio = 0.9f, stiffness = 150f),
+            tween(durationMillis = 400, easing = EaseOutCubic),
             initialVelocity = req.velocityPxPerMs
         )
         // Reset visual FIRST, then shift octave
