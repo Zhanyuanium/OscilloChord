@@ -63,8 +63,11 @@ fun PianoKeyboard(
         Log.d(TAG, "SNAP done: dragOffset=0 octaveStart=${state.octaveStart}")
     }
 
-    // Show extra octaves when dragging
-    val extraOctaves = if (isDragging) 1 else 0
+    // Dynamic extra octaves: enough to cover the scroll distance + padding
+    val extraOctaves = if (isDragging) {
+        val ow = octW()
+        if (ow > 0f) maxOf(1, (abs(dragOffset) / ow).toInt() + 1) else 1
+    } else 0
 
     Box(modifier = modifier.fillMaxWidth()) {
         Canvas(

@@ -129,10 +129,7 @@ fun MainScreen(
                 onNoteOn = { keyboardVM.noteOn(it) },
                 onNoteOff = { keyboardVM.noteOff(it) },
                 onNoteSlide = { from, to -> keyboardVM.noteSlide(from, to) },
-                onOctaveShift = { delta ->
-                    if (delta > 0) keyboardVM.shiftOctaveUp()
-                    else keyboardVM.shiftOctaveDown()
-                },
+                onOctaveShift = { delta -> keyboardVM.shiftOctaveBy(delta) },
                 modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 6.dp)
             )
         }

@@ -51,15 +51,12 @@ class KeyboardViewModel : ViewModel() {
         _state.value = _state.value.copy(octaveStart = start)
     }
 
-    fun shiftOctaveUp() {
-        _state.value = _state.value.copy(
-            octaveStart = _state.value.octaveStart + 12
-        )
-    }
+    fun shiftOctaveUp() { shiftOctaveBy(1) }
+    fun shiftOctaveDown() { shiftOctaveBy(-1) }
 
-    fun shiftOctaveDown() {
+    fun shiftOctaveBy(delta: Int) {
         _state.value = _state.value.copy(
-            octaveStart = (_state.value.octaveStart - 12).coerceAtLeast(0)
+            octaveStart = (_state.value.octaveStart + delta * 12).coerceAtLeast(0)
         )
     }
 
