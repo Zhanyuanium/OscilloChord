@@ -27,25 +27,29 @@ class KeyboardViewModel : ViewModel() {
     private val _state = MutableStateFlow(KeyboardState())
     val state: StateFlow<KeyboardState> = _state.asStateFlow()
 
-    fun noteOn(midiNote: Int) {
+    fun noteOn(midiNote: Int) = handleNoteOn(midiNote)
+
+    fun noteOff(midiNote: Int) = handleNoteOff(midiNote)
+
+    fun noteSlide(from: Int, to: Int) {
+        if (from != to) {
+            handleNoteOff(from)
+            handleNoteOn(to)
+        }
+    }
+
+    private fun handleNoteOn(midiNote: Int) {
         _state.value = _state.value.copy(
             activeNotes = _state.value.activeNotes + midiNote
         )
         audioEngine.noteOn(midiNote)
     }
 
-    fun noteOff(midiNote: Int) {
+    private fun handleNoteOff(midiNote: Int) {
         _state.value = _state.value.copy(
             activeNotes = _state.value.activeNotes - midiNote
         )
         audioEngine.noteOff(midiNote)
-    }
-
-    fun noteSlide(from: Int, to: Int) {
-        if (from != to) {
-            noteOff(from)
-            noteOn(to)
-        }
     }
 
     fun setOctaveStart(start: Int) {
@@ -94,19 +98,9 @@ class KeyboardViewModel : ViewModel() {
     }
 
     // MIDI integration
-    fun midiNoteOn(midiNote: Int) {
-        _state.value = _state.value.copy(
-            activeNotes = _state.value.activeNotes + midiNote
-        )
-        audioEngine.noteOn(midiNote)
-    }
+    fun midiNoteOn(midiNote: Int) = handleNoteOn(midiNote)
 
-    fun midiNoteOff(midiNote: Int) {
-        _state.value = _state.value.copy(
-            activeNotes = _state.value.activeNotes - midiNote
-        )
-        audioEngine.noteOff(midiNote)
-    }
+    fun midiNoteOff(midiNote: Int) = handleNoteOff(midiNote)
 
     override fun onCleared() {
         super.onCleared()
