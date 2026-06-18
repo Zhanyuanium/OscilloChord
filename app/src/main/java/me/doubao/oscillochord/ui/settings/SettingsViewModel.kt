@@ -4,22 +4,23 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import me.doubao.oscillochord.data.SettingsRepository
+import me.doubao.oscillochord.domain.settings.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 data class SettingsState(
     val octaveStart: Int = 60,
     val octaveCount: Int = 1,
-    val blackKeyLayout: String = "PIANO",
-    val slideMode: String = "FOLLOW_KEYS",
+    val blackKeyLayout: BlackKeyLayoutSetting = BlackKeyLayoutSetting.PIANO,
+    val slideMode: SlideModeSetting = SlideModeSetting.FOLLOW_KEYS,
     val showNoteLabels: Boolean = true,
-    val waveform: String = "SINE",
+    val waveform: WaveformSetting = WaveformSetting.SINE,
     val baseFrequency: Double = 440.0,
-    val tuningSystem: String = "EQUAL",
+    val tuningSystem: TuningSetting = TuningSetting.EQUAL,
     val trailFadeEnabled: Boolean = true,
     val trailLength: Int = 4096,
-    val viewMode: String = "SQUARE",
-    val noteNaming: String = "SHARP"
+    val viewMode: ViewModeSetting = ViewModeSetting.SQUARE,
+    val noteNaming: NoteNamingSetting = NoteNamingSetting.SHARP
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
