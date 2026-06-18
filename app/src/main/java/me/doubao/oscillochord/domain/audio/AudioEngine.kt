@@ -6,6 +6,7 @@ import android.media.AudioTrack
 import android.util.Log
 import kotlinx.coroutines.*
 import me.doubao.oscillochord.domain.chord.TuningSystem
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ConcurrentHashMap
 
 class AudioEngine {
@@ -111,7 +112,9 @@ class AudioEngine {
 
     fun destroy() {
         engineRunning = false
-        job?.cancel()
+        runBlocking {
+            job?.cancelAndJoin()
+        }
         oscillators.clear()
         scope.cancel()
         try {
