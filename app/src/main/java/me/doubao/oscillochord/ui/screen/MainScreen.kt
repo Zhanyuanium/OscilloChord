@@ -10,14 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import me.doubao.oscillochord.domain.audio.Waveform
-import me.doubao.oscillochord.domain.chord.TuningSystem
+import me.doubao.oscillochord.domain.settings.*
 import me.doubao.oscillochord.ui.info.InfoPanel
 import me.doubao.oscillochord.ui.info.InfoViewModel
-import me.doubao.oscillochord.ui.keyboard.BlackKeyLayout
 import me.doubao.oscillochord.ui.keyboard.KeyboardViewModel
 import me.doubao.oscillochord.ui.keyboard.PianoKeyboard
-import me.doubao.oscillochord.ui.keyboard.SlideMode
 import me.doubao.oscillochord.ui.oscilloscope.OscilloscopeView
 import me.doubao.oscillochord.ui.oscilloscope.OscilloscopeViewModel
 import me.doubao.oscillochord.ui.settings.SettingsPanel
@@ -34,33 +31,34 @@ fun MainScreen(
     val infoState by infoVM.state.collectAsStateWithLifecycle()
     val settingsState by settingsVM.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(keyboardState.activeNotes, settingsState.tuningSystem) {
-        infoVM.updateNotes(keyboardState.activeNotes, settingsState.baseFrequency,
-            TuningSystem.valueOf(settingsState.tuningSystem),
-            settingsState.noteNaming)
+    // 合并所有设置同步到一个 LaunchedEffect
+    LaunchedEffect(settingsState) {
+        // Info panel
+        infoVM.updateNotes(
+            keyboardState.activeNotes,
+            settingsState.baseFrequency,
+            settingsState.tuningSystem.system,
+            settingsState.noteNaming.name
+        )
+        // Keyboard settings
+        keyboardVM.setOctaveCount(settingsState.octaveCount)
+        keyboardVM.setBlackKeyLayout(settingsState.blackKeyLayout.layout)
+        keyboardVM.setSlideMode(settingsState.slideMode.mode)
+        keyboardVM.setShowNoteLabels(settingsState.showNoteLabels)
+        keyboardVM.setWaveform(settingsState.waveform.waveform)
+        keyboardVM.setBaseFrequency(settingsState.baseFrequency)
+        keyboardVM.setTuningSystem(settingsState.tuningSystem.system)
+        keyboardVM.setNoteNaming(settingsState.noteNaming.name)
     }
 
-    LaunchedEffect(settingsState.octaveCount) { keyboardVM.setOctaveCount(settingsState.octaveCount) }
-    LaunchedEffect(settingsState.blackKeyLayout) {
-        keyboardVM.setBlackKeyLayout(if (settingsState.blackKeyLayout == "PIANO") BlackKeyLayout.PIANO else BlackKeyLayout.EQUAL_WIDTH)
-    }
-    LaunchedEffect(settingsState.slideMode) {
-        keyboardVM.setSlideMode(if (settingsState.slideMode == "FOLLOW_KEYS") SlideMode.FOLLOW_KEYS else SlideMode.SHIFT_OCTAVE)
-    }
-    LaunchedEffect(settingsState.showNoteLabels) { keyboardVM.setShowNoteLabels(settingsState.showNoteLabels) }
-    LaunchedEffect(settingsState.waveform) { keyboardVM.setWaveform(Waveform.valueOf(settingsState.waveform)) }
-    LaunchedEffect(settingsState.baseFrequency) { keyboardVM.setBaseFrequency(settingsState.baseFrequency) }
-    LaunchedEffect(settingsState.tuningSystem) { keyboardVM.setTuningSystem(TuningSystem.valueOf(settingsState.tuningSystem)) }
-    LaunchedEffect(settingsState.noteNaming) { keyboardVM.setNoteNaming(settingsState.noteNaming) }
-
-    val isWide = settingsState.viewMode == "WIDE"
+    val isWide = settingsState.viewMode == ViewModeSetting.WIDE
 
     val scopeBlock = @Composable {
         OscilloscopeView(
             activeNotes = keyboardState.activeNotes,
             baseFrequency = settingsState.baseFrequency,
-            waveform = Waveform.valueOf(settingsState.waveform),
-            tuningSystem = TuningSystem.valueOf(settingsState.tuningSystem),
+            waveform = settingsState.waveform.waveform,
+            tuningSystem = settingsState.tuningSystem.system,
             trailFadeEnabled = settingsState.trailFadeEnabled,
             trailLength = settingsState.trailLength,
             viewModel = oscilloscopeVM,
