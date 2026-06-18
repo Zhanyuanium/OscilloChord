@@ -22,7 +22,7 @@ data class KeyboardState(
 )
 
 class KeyboardViewModel : ViewModel() {
-    val audioEngine = AudioEngine()
+    private val audioEngine = AudioEngine()
 
     private val _state = MutableStateFlow(KeyboardState())
     val state: StateFlow<KeyboardState> = _state.asStateFlow()
