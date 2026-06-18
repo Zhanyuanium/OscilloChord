@@ -43,7 +43,7 @@ class InfoViewModel : ViewModel() {
         val notes = sortedNotes.map { midi ->
             val semitonesFromRoot = midi - rootNote
             val interval = if (midi == rootNote) "根音"
-            else PitchUtils.intervalName(((semitonesFromRoot % 12) + 12) % 12)
+            else PitchUtils.intervalName(PitchUtils.pitchClass(semitonesFromRoot))
 
             NoteInfo(
                 midiNote = midi,
