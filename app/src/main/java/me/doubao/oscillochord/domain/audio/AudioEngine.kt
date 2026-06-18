@@ -55,6 +55,7 @@ class AudioEngine {
         // AudioTrack stays alive — no race between stop/start
     }
 
+    @Volatile
     private var engineRunning = false
 
     private fun ensurePlaying() {
