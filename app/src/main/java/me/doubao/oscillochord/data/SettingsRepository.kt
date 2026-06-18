@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import me.doubao.oscillochord.domain.settings.*
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -25,33 +26,45 @@ class SettingsRepository(private val context: Context) {
         val KEY_NOTE_NAMING = stringPreferencesKey("note_naming")
     }
 
-    val settings: Flow<Map<String, Any>> = context.dataStore.data.map { prefs ->
-        mapOf(
-            "octave_start" to (prefs[KEY_OCTAVE_START] ?: 60),
-            "octave_count" to (prefs[KEY_OCTAVE_COUNT] ?: 1),
-            "black_key_layout" to (prefs[KEY_BLACK_KEY_LAYOUT] ?: "PIANO"),
-            "slide_mode" to (prefs[KEY_SLIDE_MODE] ?: "FOLLOW_KEYS"),
-            "show_note_labels" to (prefs[KEY_SHOW_NOTE_LABELS] ?: true),
-            "waveform" to (prefs[KEY_WAVEFORM] ?: "SINE"),
-            "base_frequency" to (prefs[KEY_BASE_FREQUENCY] ?: 440.0),
-            "tuning_system" to (prefs[KEY_TUNING_SYSTEM] ?: "EQUAL"),
-            "trail_fade_enabled" to (prefs[KEY_TRAIL_FADE] ?: true),
-            "trail_length" to (prefs[KEY_TRAIL_LENGTH] ?: 4096),
-            "view_mode" to (prefs[KEY_VIEW_MODE] ?: "SQUARE"),
-            "note_naming" to (prefs[KEY_NOTE_NAMING] ?: "SHARP")
+    val settings: Flow<SettingsState> = context.dataStore.data.map { prefs ->
+        SettingsState(
+            octaveStart = prefs[KEY_OCTAVE_START] ?: 60,
+            octaveCount = prefs[KEY_OCTAVE_COUNT] ?: 1,
+            blackKeyLayout = try {
+                BlackKeyLayoutSetting.valueOf(prefs[KEY_BLACK_KEY_LAYOUT] ?: "PIANO")
+            } catch (_: Exception) { BlackKeyLayoutSetting.PIANO },
+            slideMode = try {
+                SlideModeSetting.valueOf(prefs[KEY_SLIDE_MODE] ?: "FOLLOW_KEYS")
+            } catch (_: Exception) { SlideModeSetting.FOLLOW_KEYS },
+            showNoteLabels = prefs[KEY_SHOW_NOTE_LABELS] ?: true,
+            waveform = try {
+                WaveformSetting.valueOf(prefs[KEY_WAVEFORM] ?: "SINE")
+            } catch (_: Exception) { WaveformSetting.SINE },
+            baseFrequency = prefs[KEY_BASE_FREQUENCY] ?: 440.0,
+            tuningSystem = try {
+                TuningSetting.valueOf(prefs[KEY_TUNING_SYSTEM] ?: "EQUAL")
+            } catch (_: Exception) { TuningSetting.EQUAL },
+            trailFadeEnabled = prefs[KEY_TRAIL_FADE] ?: true,
+            trailLength = prefs[KEY_TRAIL_LENGTH] ?: 4096,
+            viewMode = try {
+                ViewModeSetting.valueOf(prefs[KEY_VIEW_MODE] ?: "SQUARE")
+            } catch (_: Exception) { ViewModeSetting.SQUARE },
+            noteNaming = try {
+                NoteNamingSetting.valueOf(prefs[KEY_NOTE_NAMING] ?: "SHARP")
+            } catch (_: Exception) { NoteNamingSetting.SHARP }
         )
     }
 
     suspend fun setOctaveStart(start: Int) { context.dataStore.edit { it[KEY_OCTAVE_START] = start } }
     suspend fun setOctaveCount(count: Int) { context.dataStore.edit { it[KEY_OCTAVE_COUNT] = count } }
-    suspend fun setBlackKeyLayout(layout: String) { context.dataStore.edit { it[KEY_BLACK_KEY_LAYOUT] = layout } }
-    suspend fun setSlideMode(mode: String) { context.dataStore.edit { it[KEY_SLIDE_MODE] = mode } }
+    suspend fun setBlackKeyLayout(layout: BlackKeyLayoutSetting) { context.dataStore.edit { it[KEY_BLACK_KEY_LAYOUT] = layout.name } }
+    suspend fun setSlideMode(mode: SlideModeSetting) { context.dataStore.edit { it[KEY_SLIDE_MODE] = mode.name } }
     suspend fun setShowNoteLabels(show: Boolean) { context.dataStore.edit { it[KEY_SHOW_NOTE_LABELS] = show } }
-    suspend fun setWaveform(waveform: String) { context.dataStore.edit { it[KEY_WAVEFORM] = waveform } }
+    suspend fun setWaveform(waveform: WaveformSetting) { context.dataStore.edit { it[KEY_WAVEFORM] = waveform.name } }
     suspend fun setBaseFrequency(hz: Double) { context.dataStore.edit { it[KEY_BASE_FREQUENCY] = hz } }
-    suspend fun setTuningSystem(system: String) { context.dataStore.edit { it[KEY_TUNING_SYSTEM] = system } }
+    suspend fun setTuningSystem(system: TuningSetting) { context.dataStore.edit { it[KEY_TUNING_SYSTEM] = system.name } }
     suspend fun setTrailFadeEnabled(enabled: Boolean) { context.dataStore.edit { it[KEY_TRAIL_FADE] = enabled } }
     suspend fun setTrailLength(length: Int) { context.dataStore.edit { it[KEY_TRAIL_LENGTH] = length } }
-    suspend fun setViewMode(mode: String) { context.dataStore.edit { it[KEY_VIEW_MODE] = mode } }
-    suspend fun setNoteNaming(naming: String) { context.dataStore.edit { it[KEY_NOTE_NAMING] = naming } }
+    suspend fun setViewMode(mode: ViewModeSetting) { context.dataStore.edit { it[KEY_VIEW_MODE] = mode.name } }
+    suspend fun setNoteNaming(naming: NoteNamingSetting) { context.dataStore.edit { it[KEY_NOTE_NAMING] = naming.name } }
 }
