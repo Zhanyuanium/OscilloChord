@@ -1,6 +1,7 @@
 package me.doubao.oscillochord
 
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
@@ -26,12 +27,16 @@ class MainActivity : ComponentActivity() {
 
         val keyboardVM: KeyboardViewModel by viewModels()
 
-        midiManager = MidiInputManager(
-            context = this,
-            onNoteOn = { note -> keyboardVM.midiNoteOn(note) },
-            onNoteOff = { note -> keyboardVM.midiNoteOff(note) }
-        )
-        midiManager.startScan()
+        try {
+            midiManager = MidiInputManager(
+                context = this,
+                onNoteOn = { note -> keyboardVM.midiNoteOn(note) },
+                onNoteOff = { note -> keyboardVM.midiNoteOff(note) }
+            )
+            midiManager.startScan()
+        } catch (e: Exception) {
+            Log.w("MainActivity", "Failed to initialize MIDI input", e)
+        }
 
         setContent {
             OscilloChordTheme {
