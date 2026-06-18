@@ -89,6 +89,17 @@ fun PianoKeyboard(
         isAnimating -> scrollAnim.value
         else -> 0f
     }
+
+    // Pre-created Paint objects for label rendering — colors set once, textSize set per call
+    val whiteKeyLabelPaint = remember {
+        Paint().apply { color = 0xFF666666.toInt(); textAlign = Paint.Align.CENTER; isAntiAlias = true }
+    }
+    val activeKeyLabelPaint = remember {
+        Paint().apply { color = 0xFFFFFFFF.toInt(); textAlign = Paint.Align.CENTER; isAntiAlias = true }
+    }
+    val blackKeyLabelPaint = remember {
+        Paint().apply { color = 0xFFAAAAAA.toInt(); textAlign = Paint.Align.CENTER; isAntiAlias = true }
+    }
     fun extraOctaves(): Int {
         val off = abs(displayOffset)
         val ow = octW()
@@ -177,15 +188,15 @@ fun PianoKeyboard(
             canvasWidth = size.width
             val ext = extraOctaves()
             withTransform({ translate(left = displayOffset) }) {
-                if (state.blackKeyLayout == BlackKeyLayout.EQUAL_WIDTH) drawEqualWidthKeys(state, ext, primaryColor)
-                else drawPianoKeys(state, ext, primaryColor)
+                if (state.blackKeyLayout == BlackKeyLayout.EQUAL_WIDTH) drawEqualWidthKeys(state, ext, primaryColor, whiteKeyLabelPaint, activeKeyLabelPaint, blackKeyLabelPaint)
+                else drawPianoKeys(state, ext, primaryColor, whiteKeyLabelPaint, activeKeyLabelPaint, blackKeyLabelPaint)
             }
         }
 }
 
 // --- Drawing ---
 
-private fun DrawScope.drawPianoKeys(state: KeyboardState, extraOctaves: Int, primaryColor: Color) {
+private fun DrawScope.drawPianoKeys(state: KeyboardState, extraOctaves: Int, primaryColor: Color, whiteKeyLabelPaint: Paint, activeKeyLabelPaint: Paint, blackKeyLabelPaint: Paint) {
     val baseCount = state.octaveCount
     val totalWhiteKeys = baseCount * 7
     val whiteKeyWidth = size.width / totalWhiteKeys
@@ -200,7 +211,7 @@ private fun DrawScope.drawPianoKeys(state: KeyboardState, extraOctaves: Int, pri
             drawRoundRect(color = if (act) primaryColor else OscilloWhiteKey,
                 topLeft = Offset(x + gap / 2, gap), size = Size(whiteKeyWidth - gap, size.height - gap * 2), cornerRadius = wc)
             if (state.showNoteLabels) drawLabel(PitchUtils.midiNoteToName(note, state.noteNaming == "FLAT"), x + whiteKeyWidth / 2, size.height * 0.9f, whiteKeyWidth * 0.28f,
-                if (act) 0xFFFFFFFF.toInt() else 0xFF666666.toInt())
+                if (act) activeKeyLabelPaint else whiteKeyLabelPaint)
         }
     }
     for (oct in -extraOctaves until baseCount + extraOctaves) {
@@ -211,12 +222,12 @@ private fun DrawScope.drawPianoKeys(state: KeyboardState, extraOctaves: Int, pri
             drawRoundRect(color = if (act) primaryColor else OscilloBlackKey,
                 topLeft = Offset(x, 0f), size = Size(blackKeyWidth, blackKeyHeight), cornerRadius = bc)
             if (state.showNoteLabels) drawLabel(PitchUtils.midiNoteToName(note, state.noteNaming == "FLAT"), x + blackKeyWidth / 2, blackKeyHeight * 0.88f, blackKeyWidth * 0.32f,
-                if (act) 0xFFFFFFFF.toInt() else 0xFFAAAAAA.toInt())
+                if (act) activeKeyLabelPaint else blackKeyLabelPaint)
         }
     }
 }
 
-private fun DrawScope.drawEqualWidthKeys(state: KeyboardState, extraOctaves: Int, primaryColor: Color) {
+private fun DrawScope.drawEqualWidthKeys(state: KeyboardState, extraOctaves: Int, primaryColor: Color, whiteKeyLabelPaint: Paint, activeKeyLabelPaint: Paint, blackKeyLabelPaint: Paint) {
     val baseCount = state.octaveCount
     val totalKeys = baseCount * 12
     val keyWidth = size.width / totalKeys
@@ -229,15 +240,14 @@ private fun DrawScope.drawEqualWidthKeys(state: KeyboardState, extraOctaves: Int
             drawRoundRect(color = when { act -> primaryColor; blk -> OscilloBlackKey; else -> OscilloWhiteKey },
                 topLeft = Offset(x + gap / 2, gap), size = Size(keyWidth - gap, size.height - gap * 2), cornerRadius = cr)
             if (state.showNoteLabels) drawLabel(PitchUtils.midiNoteToName(note, state.noteNaming == "FLAT"), x + keyWidth / 2, size.height * 0.9f, keyWidth * 0.38f,
-                when { act -> 0xFFFFFFFF.toInt(); blk -> 0xFFAAAAAA.toInt(); else -> 0xFF666666.toInt() })
+                when { act -> activeKeyLabelPaint; blk -> blackKeyLabelPaint; else -> whiteKeyLabelPaint })
         }
     }
 }
 
-private fun DrawScope.drawLabel(t: String, x: Float, y: Float, s: Float, c: Int) {
-    drawContext.canvas.nativeCanvas.drawText(t, x, y, Paint().apply {
-        color = c; textSize = s; textAlign = Paint.Align.CENTER; isAntiAlias = true
-    })
+private fun DrawScope.drawLabel(t: String, x: Float, y: Float, s: Float, paint: Paint) {
+    paint.textSize = s
+    drawContext.canvas.nativeCanvas.drawText(t, x, y, paint)
 }
 
 private fun hitTest(x: Float, y: Float, tw: Float, th: Float, state: KeyboardState, extra: Int): Int? {
