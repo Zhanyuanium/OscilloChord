@@ -11,22 +11,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import me.doubao.oscillochord.R
+import me.doubao.oscillochord.domain.settings.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPanel(
     state: SettingsState,
     onOctaveCountChange: (Int) -> Unit,
-    onBlackKeyLayoutChange: (String) -> Unit,
-    onSlideModeChange: (String) -> Unit,
+    onBlackKeyLayoutChange: (BlackKeyLayoutSetting) -> Unit,
+    onSlideModeChange: (SlideModeSetting) -> Unit,
     onShowNoteLabelsChange: (Boolean) -> Unit,
-    onWaveformChange: (String) -> Unit,
+    onWaveformChange: (WaveformSetting) -> Unit,
     onBaseFrequencyChange: (Double) -> Unit,
-    onTuningSystemChange: (String) -> Unit,
+    onTuningSystemChange: (TuningSetting) -> Unit,
     onTrailFadeChange: (Boolean) -> Unit,
     onTrailLengthChange: (Int) -> Unit,
-    onViewModeChange: (String) -> Unit,
-    onNoteNamingChange: (String) -> Unit,
+    onViewModeChange: (ViewModeSetting) -> Unit,
+    onNoteNamingChange: (NoteNamingSetting) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -51,16 +52,20 @@ fun SettingsPanel(
                 // Segmented button: key layout
                 Text(stringResource(R.string.settings_black_key_layout), style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(4.dp))
-                val layoutOptions = listOf(
-                    "PIANO" to stringResource(R.string.settings_key_layout_piano),
-                    "EQUAL_WIDTH" to stringResource(R.string.settings_key_layout_equal)
-                )
+                val layoutOptions = BlackKeyLayoutSetting.entries.map {
+                    it to stringResource(
+                        when (it) {
+                            BlackKeyLayoutSetting.PIANO -> R.string.settings_key_layout_piano
+                            BlackKeyLayoutSetting.EQUAL_WIDTH -> R.string.settings_key_layout_equal
+                        }
+                    )
+                }
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    layoutOptions.forEachIndexed { index, (key, label) ->
+                    layoutOptions.forEachIndexed { index, (value, label) ->
                         SegmentedButton(
                             shape = SegmentedButtonDefaults.itemShape(index, layoutOptions.size),
-                            onClick = { onBlackKeyLayoutChange(key) },
-                            selected = state.blackKeyLayout == key
+                            onClick = { onBlackKeyLayoutChange(value) },
+                            selected = state.blackKeyLayout == value
                         ) { Text(label, style = MaterialTheme.typography.bodySmall) }
                     }
                 }
@@ -69,16 +74,20 @@ fun SettingsPanel(
                 // Segmented button: slide mode
                 Text(stringResource(R.string.settings_slide_mode), style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(4.dp))
-                val slideOptions = listOf(
-                    "FOLLOW_KEYS" to stringResource(R.string.settings_slide_follow_keys),
-                    "SHIFT_OCTAVE" to stringResource(R.string.settings_slide_shift_octave)
-                )
+                val slideOptions = SlideModeSetting.entries.map {
+                    it to stringResource(
+                        when (it) {
+                            SlideModeSetting.FOLLOW_KEYS -> R.string.settings_slide_follow_keys
+                            SlideModeSetting.SHIFT_OCTAVE -> R.string.settings_slide_shift_octave
+                        }
+                    )
+                }
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    slideOptions.forEachIndexed { index, (key, label) ->
+                    slideOptions.forEachIndexed { index, (value, label) ->
                         SegmentedButton(
                             shape = SegmentedButtonDefaults.itemShape(index, slideOptions.size),
-                            onClick = { onSlideModeChange(key) },
-                            selected = state.slideMode == key
+                            onClick = { onSlideModeChange(value) },
+                            selected = state.slideMode == value
                         ) { Text(label, style = MaterialTheme.typography.bodySmall) }
                     }
                 }
@@ -95,16 +104,20 @@ fun SettingsPanel(
                 Spacer(Modifier.height(8.dp))
                 Text(stringResource(R.string.settings_note_naming), style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(4.dp))
-                val namingOptions = listOf(
-                    "SHARP" to stringResource(R.string.settings_note_sharp),
-                    "FLAT" to stringResource(R.string.settings_note_flat)
-                )
+                val namingOptions = NoteNamingSetting.entries.map {
+                    it to stringResource(
+                        when (it) {
+                            NoteNamingSetting.SHARP -> R.string.settings_note_sharp
+                            NoteNamingSetting.FLAT -> R.string.settings_note_flat
+                        }
+                    )
+                }
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    namingOptions.forEachIndexed { index, (key, label) ->
+                    namingOptions.forEachIndexed { index, (value, label) ->
                         SegmentedButton(
                             shape = SegmentedButtonDefaults.itemShape(index, namingOptions.size),
-                            onClick = { onNoteNamingChange(key) },
-                            selected = state.noteNaming == key
+                            onClick = { onNoteNamingChange(value) },
+                            selected = state.noteNaming == value
                         ) { Text(label, style = MaterialTheme.typography.bodySmall) }
                     }
                 }
@@ -124,12 +137,16 @@ fun SettingsPanel(
 
                 // Dropdown for waveform
                 var expanded by remember { mutableStateOf(false) }
-                val waveforms = listOf(
-                    "SINE" to stringResource(R.string.settings_waveform_sine),
-                    "SQUARE" to stringResource(R.string.settings_waveform_square),
-                    "TRIANGLE" to stringResource(R.string.settings_waveform_triangle),
-                    "SAWTOOTH" to stringResource(R.string.settings_waveform_sawtooth)
-                )
+                val waveforms = WaveformSetting.entries.map {
+                    it to stringResource(
+                        when (it) {
+                            WaveformSetting.SINE -> R.string.settings_waveform_sine
+                            WaveformSetting.SQUARE -> R.string.settings_waveform_square
+                            WaveformSetting.TRIANGLE -> R.string.settings_waveform_triangle
+                            WaveformSetting.SAWTOOTH -> R.string.settings_waveform_sawtooth
+                        }
+                    )
+                }
                 val currentLabel = waveforms.find { it.first == state.waveform }?.second
                     ?: stringResource(R.string.settings_waveform_sine)
                 ExposedDropdownMenuBox(expanded = expanded,
@@ -145,9 +162,9 @@ fun SettingsPanel(
                     )
                     ExposedDropdownMenu(expanded = expanded,
                         onDismissRequest = { expanded = false }) {
-                        waveforms.forEach { (key, label) ->
+                        waveforms.forEach { (value, label) ->
                             DropdownMenuItem(text = { Text(label) },
-                                onClick = { onWaveformChange(key); expanded = false })
+                                onClick = { onWaveformChange(value); expanded = false })
                         }
                     }
                 }
@@ -161,11 +178,15 @@ fun SettingsPanel(
 
                 Spacer(Modifier.height(8.dp))
                 var tuningExpanded by remember { mutableStateOf(false) }
-                val tuningOptions = listOf(
-                    "EQUAL" to stringResource(R.string.settings_tuning_equal),
-                    "JUST" to stringResource(R.string.settings_tuning_just),
-                    "PYTHAGOREAN" to stringResource(R.string.settings_tuning_pythagorean)
-                )
+                val tuningOptions = TuningSetting.entries.map {
+                    it to stringResource(
+                        when (it) {
+                            TuningSetting.EQUAL -> R.string.settings_tuning_equal
+                            TuningSetting.JUST -> R.string.settings_tuning_just
+                            TuningSetting.PYTHAGOREAN -> R.string.settings_tuning_pythagorean
+                        }
+                    )
+                }
                 val tuningLabel = tuningOptions.find { it.first == state.tuningSystem }?.second
                     ?: stringResource(R.string.settings_tuning_equal)
                 ExposedDropdownMenuBox(expanded = tuningExpanded, onExpandedChange = { tuningExpanded = it }) {
@@ -177,9 +198,9 @@ fun SettingsPanel(
                         textStyle = MaterialTheme.typography.bodySmall
                     )
                     ExposedDropdownMenu(expanded = tuningExpanded, onDismissRequest = { tuningExpanded = false }) {
-                        tuningOptions.forEach { (key, label) ->
+                        tuningOptions.forEach { (value, label) ->
                             DropdownMenuItem(text = { Text(label) },
-                                onClick = { onTuningSystemChange(key); tuningExpanded = false })
+                                onClick = { onTuningSystemChange(value); tuningExpanded = false })
                         }
                     }
                 }
@@ -227,16 +248,20 @@ fun SettingsPanel(
                 Text(stringResource(R.string.settings_view_mode), style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(8.dp))
-                val viewOptions = listOf(
-                    "SQUARE" to stringResource(R.string.settings_view_square),
-                    "WIDE" to stringResource(R.string.settings_view_wide)
-                )
+                val viewOptions = ViewModeSetting.entries.map {
+                    it to stringResource(
+                        when (it) {
+                            ViewModeSetting.SQUARE -> R.string.settings_view_square
+                            ViewModeSetting.WIDE -> R.string.settings_view_wide
+                        }
+                    )
+                }
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    viewOptions.forEachIndexed { index, (key, label) ->
+                    viewOptions.forEachIndexed { index, (value, label) ->
                         SegmentedButton(
                             shape = SegmentedButtonDefaults.itemShape(index, viewOptions.size),
-                            onClick = { onViewModeChange(key) },
-                            selected = state.viewMode == key
+                            onClick = { onViewModeChange(value) },
+                            selected = state.viewMode == value
                         ) { Text(label, style = MaterialTheme.typography.bodySmall) }
                     }
                 }
