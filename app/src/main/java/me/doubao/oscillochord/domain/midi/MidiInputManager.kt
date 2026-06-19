@@ -10,20 +10,23 @@ class MidiInputManager(
 ) {
     private val midiManager = context.getSystemService(Context.MIDI_SERVICE) as MidiManager
     private val openedDevices = mutableMapOf<Int, MidiDevice>()
+    private var deviceCallback: MidiManager.DeviceCallback? = null
 
     fun startScan() {
         midiManager.devices?.forEach { device ->
             if (device.inputPortCount > 0) openDevice(device)
         }
 
-        midiManager.registerDeviceCallback(object : MidiManager.DeviceCallback() {
+        val callback = object : MidiManager.DeviceCallback() {
             override fun onDeviceAdded(device: MidiDeviceInfo) {
                 if (device.inputPortCount > 0) openDevice(device)
             }
             override fun onDeviceRemoved(device: MidiDeviceInfo) {
                 openedDevices.remove(device.id)?.close()
             }
-        }, null)
+        }
+        deviceCallback = callback
+        midiManager.registerDeviceCallback(callback, null)
     }
 
     private fun openDevice(deviceInfo: MidiDeviceInfo) {
@@ -37,6 +40,8 @@ class MidiInputManager(
     }
 
     fun destroy() {
+        deviceCallback?.let { midiManager.unregisterDeviceCallback(it) }
+        deviceCallback = null
         openedDevices.values.forEach { it.close() }
         openedDevices.clear()
     }

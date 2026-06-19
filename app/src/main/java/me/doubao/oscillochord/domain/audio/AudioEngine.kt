@@ -3,8 +3,10 @@ package me.doubao.oscillochord.domain.audio
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
+import android.util.Log
 import kotlinx.coroutines.*
 import me.doubao.oscillochord.domain.chord.TuningSystem
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ConcurrentHashMap
 
 class AudioEngine {
@@ -55,6 +57,7 @@ class AudioEngine {
         // AudioTrack stays alive — no race between stop/start
     }
 
+    @Volatile
     private var engineRunning = false
 
     private fun ensurePlaying() {
@@ -109,11 +112,21 @@ class AudioEngine {
 
     fun destroy() {
         engineRunning = false
-        job?.cancel()
+        runBlocking {
+            job?.cancelAndJoin()
+        }
         oscillators.clear()
         scope.cancel()
-        try { audioTrack?.stop() } catch (_: Exception) {}
-        try { audioTrack?.release() } catch (_: Exception) {}
+        try {
+            audioTrack?.stop()
+        } catch (e: Exception) {
+            Log.w("AudioEngine", "Failed to stop AudioTrack", e)
+        }
+        try {
+            audioTrack?.release()
+        } catch (e: Exception) {
+            Log.w("AudioEngine", "Failed to release AudioTrack", e)
+        }
         audioTrack = null
     }
 

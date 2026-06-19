@@ -6,9 +6,9 @@ enum class TuningSystem(val displayName: String) {
     PYTHAGOREAN("五度相生率");
 
     fun frequencyForMidi(midiNote: Int, baseFrequency: Double = 440.0): Double {
-        val pc = ((midiNote % 12) + 12) % 12
-        val octave = midiNote / 12 - 1  // A4 → octave 4
-        val a4Octave = 69 / 12 - 1      // = 4
+        val pc = Math.floorMod(midiNote, 12)
+        val octave = Math.floorDiv(midiNote, 12) - 1  // A4 → octave 4
+        val a4Octave = Math.floorDiv(69, 12) - 1      // = 4
         val octaveDiff = octave - a4Octave
 
         return when (this) {

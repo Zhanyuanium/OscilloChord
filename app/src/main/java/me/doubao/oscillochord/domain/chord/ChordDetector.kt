@@ -12,7 +12,7 @@ class ChordDetector {
 
         for (rootMidi in midiNotes.sorted()) {
             val intervalsMod12 = midiNotes.map { note ->
-                ((note - rootMidi) % 12 + 12) % 12
+                PitchUtils.pitchClass(note - rootMidi)
             }.toSet()
 
             for (template in ChordDatabase.templates) {

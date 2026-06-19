@@ -3,22 +3,23 @@ package me.doubao.oscillochord.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import me.doubao.oscillochord.data.SettingsRepository
+import me.doubao.oscillochord.domain.settings.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 data class SettingsState(
     val octaveStart: Int = 60,
     val octaveCount: Int = 1,
-    val blackKeyLayout: String = "PIANO",
-    val slideMode: String = "FOLLOW_KEYS",
+    val blackKeyLayout: BlackKeyLayoutSetting = BlackKeyLayoutSetting.PIANO,
+    val slideMode: SlideModeSetting = SlideModeSetting.FOLLOW_KEYS,
     val showNoteLabels: Boolean = true,
-    val waveform: String = "SINE",
+    val waveform: WaveformSetting = WaveformSetting.SINE,
     val baseFrequency: Double = 440.0,
-    val tuningSystem: String = "EQUAL",
+    val tuningSystem: TuningSetting = TuningSetting.EQUAL,
     val trailFadeEnabled: Boolean = true,
     val trailLength: Int = 4096,
-    val viewMode: String = "SQUARE",
-    val noteNaming: String = "SHARP"
+    val viewMode: ViewModeSetting = ViewModeSetting.SQUARE,
+    val noteNaming: NoteNamingSetting = NoteNamingSetting.SHARP
 )
 
 class SettingsViewModel(
@@ -29,34 +30,21 @@ class SettingsViewModel(
 
     init {
         viewModelScope.launch {
-            repository.settings.collect { prefs ->
-                _state.value = SettingsState(
-                    octaveStart = prefs["octave_start"] as? Int ?: 60,
-                    octaveCount = prefs["octave_count"] as? Int ?: 1,
-                    blackKeyLayout = prefs["black_key_layout"] as? String ?: "PIANO",
-                    slideMode = prefs["slide_mode"] as? String ?: "FOLLOW_KEYS",
-                    showNoteLabels = prefs["show_note_labels"] as? Boolean ?: true,
-                    waveform = prefs["waveform"] as? String ?: "SINE",
-                    baseFrequency = prefs["base_frequency"] as? Double ?: 440.0,
-                    tuningSystem = prefs["tuning_system"] as? String ?: "EQUAL",
-                    trailFadeEnabled = prefs["trail_fade_enabled"] as? Boolean ?: true,
-                    trailLength = prefs["trail_length"] as? Int ?: 4096,
-                    viewMode = prefs["view_mode"] as? String ?: "SQUARE",
-                    noteNaming = prefs["note_naming"] as? String ?: "SHARP"
-                )
+            repository.settings.collect { settings ->
+                _state.value = settings
             }
         }
     }
 
     fun setOctaveCount(count: Int) { viewModelScope.launch { repository.setOctaveCount(count) } }
-    fun setBlackKeyLayout(layout: String) { viewModelScope.launch { repository.setBlackKeyLayout(layout) } }
-    fun setSlideMode(mode: String) { viewModelScope.launch { repository.setSlideMode(mode) } }
+    fun setBlackKeyLayout(layout: BlackKeyLayoutSetting) { viewModelScope.launch { repository.setBlackKeyLayout(layout) } }
+    fun setSlideMode(mode: SlideModeSetting) { viewModelScope.launch { repository.setSlideMode(mode) } }
     fun setShowNoteLabels(show: Boolean) { viewModelScope.launch { repository.setShowNoteLabels(show) } }
-    fun setWaveform(waveform: String) { viewModelScope.launch { repository.setWaveform(waveform) } }
+    fun setWaveform(waveform: WaveformSetting) { viewModelScope.launch { repository.setWaveform(waveform) } }
     fun setBaseFrequency(hz: Double) { viewModelScope.launch { repository.setBaseFrequency(hz) } }
-    fun setTuningSystem(system: String) { viewModelScope.launch { repository.setTuningSystem(system) } }
+    fun setTuningSystem(system: TuningSetting) { viewModelScope.launch { repository.setTuningSystem(system) } }
     fun setTrailFadeEnabled(enabled: Boolean) { viewModelScope.launch { repository.setTrailFadeEnabled(enabled) } }
     fun setTrailLength(length: Int) { viewModelScope.launch { repository.setTrailLength(length) } }
-    fun setViewMode(mode: String) { viewModelScope.launch { repository.setViewMode(mode) } }
-    fun setNoteNaming(naming: String) { viewModelScope.launch { repository.setNoteNaming(naming) } }
+    fun setViewMode(mode: ViewModeSetting) { viewModelScope.launch { repository.setViewMode(mode) } }
+    fun setNoteNaming(naming: NoteNamingSetting) { viewModelScope.launch { repository.setNoteNaming(naming) } }
 }
