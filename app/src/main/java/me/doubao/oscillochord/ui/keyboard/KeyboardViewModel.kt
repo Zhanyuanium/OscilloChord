@@ -1,13 +1,17 @@
 package me.doubao.oscillochord.ui.keyboard
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import me.doubao.oscillochord.data.SettingsRepository
 import me.doubao.oscillochord.domain.audio.AudioEngine
 import me.doubao.oscillochord.domain.audio.Waveform
 import me.doubao.oscillochord.domain.chord.TuningSystem
+import me.doubao.oscillochord.domain.settings.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 enum class BlackKeyLayout { PIANO, EQUAL_WIDTH }
 enum class SlideMode { FOLLOW_KEYS, SHIFT_OCTAVE }
@@ -23,11 +27,27 @@ data class KeyboardState(
 )
 
 class KeyboardViewModel(
-    private val audioEngine: AudioEngine
+    private val audioEngine: AudioEngine,
+    private val repository: SettingsRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(KeyboardState())
     val state: StateFlow<KeyboardState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            repository.settings.collect { s ->
+                setOctaveCount(s.octaveCount)
+                setBlackKeyLayout(s.blackKeyLayout.layout)
+                setSlideMode(s.slideMode.mode)
+                setShowNoteLabels(s.showNoteLabels)
+                setWaveform(s.waveform.waveform)
+                setBaseFrequency(s.baseFrequency)
+                setTuningSystem(s.tuningSystem.system)
+                setNoteNaming(s.noteNaming.name)
+            }
+        }
+    }
 
     private fun handleNoteOn(midiNote: Int) {
         _state.update { it.copy(activeNotes = it.activeNotes + midiNote) }

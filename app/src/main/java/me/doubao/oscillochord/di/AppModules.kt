@@ -23,8 +23,8 @@ val dataModule = module {
 }
 
 val viewModelModule = module {
-    viewModel { KeyboardViewModel(get()) }
+    viewModel { KeyboardViewModel(get(), get()) }
     viewModel { OscilloscopeViewModel(get()) }
-    viewModel { InfoViewModel(get()) }
+    viewModel { InfoViewModel(get(), get()) }
     viewModel { SettingsViewModel(get()) }
 }

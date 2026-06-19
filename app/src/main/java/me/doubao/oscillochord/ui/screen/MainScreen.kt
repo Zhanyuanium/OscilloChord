@@ -31,27 +31,9 @@ fun MainScreen(
     val infoState by infoVM.state.collectAsStateWithLifecycle()
     val settingsState by settingsVM.state.collectAsStateWithLifecycle()
 
-    // Info panel: 必须随 activeNotes 变化而更新，同时受调律/频率/命名设置影响
-    LaunchedEffect(keyboardState.activeNotes, settingsState.baseFrequency,
-        settingsState.tuningSystem, settingsState.noteNaming) {
-        infoVM.updateNotes(
-            keyboardState.activeNotes,
-            settingsState.baseFrequency,
-            settingsState.tuningSystem.system,
-            settingsState.noteNaming.name
-        )
-    }
-
-    // Keyboard 设置同步：仅在 settingsState 变化时执行
-    LaunchedEffect(settingsState) {
-        keyboardVM.setOctaveCount(settingsState.octaveCount)
-        keyboardVM.setBlackKeyLayout(settingsState.blackKeyLayout.layout)
-        keyboardVM.setSlideMode(settingsState.slideMode.mode)
-        keyboardVM.setShowNoteLabels(settingsState.showNoteLabels)
-        keyboardVM.setWaveform(settingsState.waveform.waveform)
-        keyboardVM.setBaseFrequency(settingsState.baseFrequency)
-        keyboardVM.setTuningSystem(settingsState.tuningSystem.system)
-        keyboardVM.setNoteNaming(settingsState.noteNaming.name)
+    // 按键变化时同步到 InfoViewModel（设置由 InfoViewModel 自行观察）
+    LaunchedEffect(keyboardState.activeNotes) {
+        infoVM.setActiveNotes(keyboardState.activeNotes)
     }
 
     val isWide = settingsState.viewMode == ViewModeSetting.WIDE

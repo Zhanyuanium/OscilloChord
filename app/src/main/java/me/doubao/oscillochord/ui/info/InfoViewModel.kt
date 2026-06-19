@@ -1,13 +1,17 @@
 package me.doubao.oscillochord.ui.info
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import me.doubao.oscillochord.data.SettingsRepository
 import me.doubao.oscillochord.domain.chord.ChordDetector
 import me.doubao.oscillochord.domain.chord.ChordResult
 import me.doubao.oscillochord.domain.chord.PitchUtils
-import me.doubao.oscillochord.domain.chord.TuningSystem
+import me.doubao.oscillochord.domain.settings.NoteNamingSetting
+import me.doubao.oscillochord.ui.settings.SettingsState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 data class NoteInfo(
     val midiNote: Int,
@@ -23,12 +27,32 @@ data class InfoPanelState(
 )
 
 class InfoViewModel(
-    private val detector: ChordDetector
+    private val detector: ChordDetector,
+    private val repository: SettingsRepository? = null
 ) : ViewModel() {
     private val _state = MutableStateFlow(InfoPanelState())
     val state: StateFlow<InfoPanelState> = _state.asStateFlow()
 
-    fun updateNotes(activeNotes: Set<Int>, baseFrequency: Double = 440.0, tuningSystem: TuningSystem = TuningSystem.EQUAL, noteNaming: String = "SHARP") {
+    private var activeNotes: Set<Int> = emptySet()
+    private var settings: SettingsState = SettingsState()
+
+    init {
+        if (repository != null) {
+            viewModelScope.launch {
+                repository.settings.collect { s ->
+                    settings = s
+                    recompute()
+                }
+            }
+        }
+    }
+
+    fun setActiveNotes(notes: Set<Int>) {
+        activeNotes = notes
+        recompute()
+    }
+
+    private fun recompute() {
         if (activeNotes.isEmpty()) {
             _state.value = InfoPanelState()
             return
@@ -48,8 +72,8 @@ class InfoViewModel(
 
             NoteInfo(
                 midiNote = midi,
-                name = PitchUtils.midiNoteToName(midi, noteNaming == "FLAT"),
-                frequencyHz = PitchUtils.midiNoteToFrequency(midi, baseFrequency, tuningSystem),
+                name = PitchUtils.midiNoteToName(midi, settings.noteNaming == NoteNamingSetting.FLAT),
+                frequencyHz = PitchUtils.midiNoteToFrequency(midi, settings.baseFrequency, settings.tuningSystem.system),
                 intervalFromRoot = interval,
                 isRoot = midi == rootNote
             )
@@ -57,7 +81,7 @@ class InfoViewModel(
 
         _state.value = InfoPanelState(
             chordAbbreviation = chordResult?.let { result ->
-                val rootName = PitchUtils.midiNoteToName(result.root, noteNaming == "FLAT").dropLast(1)
+                val rootName = PitchUtils.midiNoteToName(result.root, settings.noteNaming == NoteNamingSetting.FLAT).dropLast(1)
                 "${rootName}${result.abbreviation}"
             } ?: "",
             notes = notes
