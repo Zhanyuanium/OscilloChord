@@ -9,7 +9,7 @@ import me.doubao.oscillochord.ui.keyboard.KeyboardViewModel
 import me.doubao.oscillochord.ui.oscilloscope.OscilloscopeViewModel
 import me.doubao.oscillochord.ui.settings.SettingsViewModel
 import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val domainModule = module {
