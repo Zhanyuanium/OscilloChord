@@ -31,16 +31,19 @@ fun MainScreen(
     val infoState by infoVM.state.collectAsStateWithLifecycle()
     val settingsState by settingsVM.state.collectAsStateWithLifecycle()
 
-    // 合并所有设置同步到一个 LaunchedEffect
-    LaunchedEffect(settingsState) {
-        // Info panel
+    // Info panel: 必须随 activeNotes 变化而更新，同时受调律/频率/命名设置影响
+    LaunchedEffect(keyboardState.activeNotes, settingsState.baseFrequency,
+        settingsState.tuningSystem, settingsState.noteNaming) {
         infoVM.updateNotes(
             keyboardState.activeNotes,
             settingsState.baseFrequency,
             settingsState.tuningSystem.system,
             settingsState.noteNaming.name
         )
-        // Keyboard settings
+    }
+
+    // Keyboard 设置同步：仅在 settingsState 变化时执行
+    LaunchedEffect(settingsState) {
         keyboardVM.setOctaveCount(settingsState.octaveCount)
         keyboardVM.setBlackKeyLayout(settingsState.blackKeyLayout.layout)
         keyboardVM.setSlideMode(settingsState.slideMode.mode)
