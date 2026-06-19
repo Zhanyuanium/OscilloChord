@@ -7,6 +7,7 @@ import me.doubao.oscillochord.domain.chord.TuningSystem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 enum class BlackKeyLayout { PIANO, EQUAL_WIDTH }
 enum class SlideMode { FOLLOW_KEYS, SHIFT_OCTAVE }
@@ -21,60 +22,58 @@ data class KeyboardState(
     val noteNaming: String = "SHARP"
 )
 
-class KeyboardViewModel : ViewModel() {
-    val audioEngine = AudioEngine()
+class KeyboardViewModel(
+    private val audioEngine: AudioEngine
+) : ViewModel() {
 
     private val _state = MutableStateFlow(KeyboardState())
     val state: StateFlow<KeyboardState> = _state.asStateFlow()
 
-    fun noteOn(midiNote: Int) {
-        _state.value = _state.value.copy(
-            activeNotes = _state.value.activeNotes + midiNote
-        )
+    private fun handleNoteOn(midiNote: Int) {
+        _state.update { it.copy(activeNotes = it.activeNotes + midiNote) }
         audioEngine.noteOn(midiNote)
     }
 
-    fun noteOff(midiNote: Int) {
-        _state.value = _state.value.copy(
-            activeNotes = _state.value.activeNotes - midiNote
-        )
+    private fun handleNoteOff(midiNote: Int) {
+        _state.update { it.copy(activeNotes = it.activeNotes - midiNote) }
         audioEngine.noteOff(midiNote)
     }
 
+    fun noteOn(midiNote: Int) = handleNoteOn(midiNote)
+    fun noteOff(midiNote: Int) = handleNoteOff(midiNote)
+
     fun noteSlide(from: Int, to: Int) {
         if (from != to) {
-            noteOff(from)
-            noteOn(to)
+            handleNoteOff(from)
+            handleNoteOn(to)
         }
     }
 
     fun setOctaveStart(start: Int) {
-        _state.value = _state.value.copy(octaveStart = start)
+        _state.update { it.copy(octaveStart = start) }
     }
 
     fun shiftOctaveUp() { shiftOctaveBy(1) }
     fun shiftOctaveDown() { shiftOctaveBy(-1) }
 
     fun shiftOctaveBy(delta: Int) {
-        _state.value = _state.value.copy(
-            octaveStart = (_state.value.octaveStart + delta * 12).coerceAtLeast(0)
-        )
+        _state.update { it.copy(octaveStart = (it.octaveStart + delta * 12).coerceAtLeast(0)) }
     }
 
     fun setOctaveCount(count: Int) {
-        _state.value = _state.value.copy(octaveCount = count.coerceIn(1, 5))
+        _state.update { it.copy(octaveCount = count.coerceIn(1, 5)) }
     }
 
     fun setBlackKeyLayout(layout: BlackKeyLayout) {
-        _state.value = _state.value.copy(blackKeyLayout = layout)
+        _state.update { it.copy(blackKeyLayout = layout) }
     }
 
     fun setShowNoteLabels(show: Boolean) {
-        _state.value = _state.value.copy(showNoteLabels = show)
+        _state.update { it.copy(showNoteLabels = show) }
     }
 
     fun setSlideMode(mode: SlideMode) {
-        _state.value = _state.value.copy(slideMode = mode)
+        _state.update { it.copy(slideMode = mode) }
     }
 
     fun setWaveform(waveform: Waveform) {
@@ -90,23 +89,11 @@ class KeyboardViewModel : ViewModel() {
     }
 
     fun setNoteNaming(naming: String) {
-        _state.value = _state.value.copy(noteNaming = naming)
+        _state.update { it.copy(noteNaming = naming) }
     }
 
-    // MIDI integration
-    fun midiNoteOn(midiNote: Int) {
-        _state.value = _state.value.copy(
-            activeNotes = _state.value.activeNotes + midiNote
-        )
-        audioEngine.noteOn(midiNote)
-    }
-
-    fun midiNoteOff(midiNote: Int) {
-        _state.value = _state.value.copy(
-            activeNotes = _state.value.activeNotes - midiNote
-        )
-        audioEngine.noteOff(midiNote)
-    }
+    fun midiNoteOn(midiNote: Int) = handleNoteOn(midiNote)
+    fun midiNoteOff(midiNote: Int) = handleNoteOff(midiNote)
 
     override fun onCleared() {
         super.onCleared()

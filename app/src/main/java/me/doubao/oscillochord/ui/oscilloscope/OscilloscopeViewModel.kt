@@ -16,8 +16,9 @@ data class OscilloscopeState(
     val trailPoints: List<TrailPoint> = emptyList()
 )
 
-class OscilloscopeViewModel : ViewModel() {
-    private val projector = LissajousProjector()
+class OscilloscopeViewModel(
+    private val projector: LissajousProjector
+) : ViewModel() {
     private val visualOscillators = mutableMapOf<Int, Oscillator>()
     private val _state = MutableStateFlow(OscilloscopeState())
     val state: StateFlow<OscilloscopeState> = _state.asStateFlow()
@@ -56,7 +57,6 @@ class OscilloscopeViewModel : ViewModel() {
 
         val oscs = active.map { it.second }
         val n = oscs.size
-        // Normalization: for N≥3, projection sum can exceed [-1,1]; divide by √N
         val norm = if (n >= 3) 1.0f / sqrt(n.toFloat()) else 1.0f
         val points = _state.value.trailPoints.toMutableList()
 
@@ -74,7 +74,6 @@ class OscilloscopeViewModel : ViewModel() {
             points.add(TrailPoint(projected.first, projected.second))
         }
 
-        // Trim trail
         while (points.size > maxTrail) {
             points.subList(0, SAMPLES_PER_FRAME).clear()
         }

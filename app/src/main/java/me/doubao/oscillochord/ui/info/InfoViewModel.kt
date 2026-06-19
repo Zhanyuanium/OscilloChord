@@ -22,8 +22,9 @@ data class InfoPanelState(
     val notes: List<NoteInfo> = emptyList()
 )
 
-class InfoViewModel : ViewModel() {
-    private val detector = ChordDetector()
+class InfoViewModel(
+    private val detector: ChordDetector
+) : ViewModel() {
     private val _state = MutableStateFlow(InfoPanelState())
     val state: StateFlow<InfoPanelState> = _state.asStateFlow()
 
@@ -43,7 +44,7 @@ class InfoViewModel : ViewModel() {
         val notes = sortedNotes.map { midi ->
             val semitonesFromRoot = midi - rootNote
             val interval = if (midi == rootNote) "根音"
-            else PitchUtils.intervalName(((semitonesFromRoot % 12) + 12) % 12)
+            else PitchUtils.intervalName(PitchUtils.pitchClass(semitonesFromRoot))
 
             NoteInfo(
                 midiNote = midi,

@@ -1,7 +1,6 @@
 package me.doubao.oscillochord.ui.settings
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import me.doubao.oscillochord.data.SettingsRepository
 import kotlinx.coroutines.flow.*
@@ -22,8 +21,9 @@ data class SettingsState(
     val noteNaming: String = "SHARP"
 )
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = SettingsRepository(application)
+class SettingsViewModel(
+    private val repository: SettingsRepository
+) : ViewModel() {
     private val _state = MutableStateFlow(SettingsState())
     val state: StateFlow<SettingsState> = _state.asStateFlow()
 
