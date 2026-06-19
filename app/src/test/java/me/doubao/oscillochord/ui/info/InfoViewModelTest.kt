@@ -1,11 +1,12 @@
 package me.doubao.oscillochord.ui.info
 
+import me.doubao.oscillochord.domain.chord.ChordDetector
 import me.doubao.oscillochord.domain.chord.TuningSystem
 import org.junit.Assert.*
 import org.junit.Test
 
 class InfoViewModelTest {
-    private val viewModel = InfoViewModel()
+    private val viewModel = InfoViewModel(ChordDetector())
 
     @Test
     fun `empty notes produces empty state`() {
