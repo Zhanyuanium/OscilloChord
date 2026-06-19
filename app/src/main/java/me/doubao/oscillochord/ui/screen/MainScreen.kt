@@ -9,7 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import me.doubao.oscillochord.domain.audio.Waveform
 import me.doubao.oscillochord.domain.chord.TuningSystem
 import me.doubao.oscillochord.ui.info.InfoPanel
@@ -25,10 +25,10 @@ import me.doubao.oscillochord.ui.settings.SettingsViewModel
 
 @Composable
 fun MainScreen(
-    keyboardVM: KeyboardViewModel = viewModel(),
-    oscilloscopeVM: OscilloscopeViewModel = viewModel(),
-    infoVM: InfoViewModel = viewModel(),
-    settingsVM: SettingsViewModel = viewModel()
+    keyboardVM: KeyboardViewModel = koinViewModel(),
+    oscilloscopeVM: OscilloscopeViewModel = koinViewModel(),
+    infoVM: InfoViewModel = koinViewModel(),
+    settingsVM: SettingsViewModel = koinViewModel()
 ) {
     val keyboardState by keyboardVM.state.collectAsStateWithLifecycle()
     val infoState by infoVM.state.collectAsStateWithLifecycle()
