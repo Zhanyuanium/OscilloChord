@@ -4,6 +4,7 @@
     <uses-feature android:name="android.hardware.usb.host" android:required="false" />
 
     <application
+        android:name=".OscilloChordApp"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
