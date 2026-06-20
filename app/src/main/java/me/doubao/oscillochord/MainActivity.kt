@@ -7,7 +7,7 @@ import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         hideSystemUI()
 
-        val keyboardVM: KeyboardViewModel by viewModels()
+        val keyboardVM: KeyboardViewModel by viewModel()
 
         try {
             midiManager = MidiInputManager(
