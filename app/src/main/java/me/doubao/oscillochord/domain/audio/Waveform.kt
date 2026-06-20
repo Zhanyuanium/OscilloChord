@@ -4,11 +4,11 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.sin
 
-enum class Waveform(val displayName: String) {
-    SINE("正弦波"),
-    SQUARE("方波"),
-    TRIANGLE("三角波"),
-    SAWTOOTH("锯齿波");
+enum class Waveform {
+    SINE,
+    SQUARE,
+    TRIANGLE,
+    SAWTOOTH;
 
     fun generate(phase: Double): Double {
         // phase in [0, 1)

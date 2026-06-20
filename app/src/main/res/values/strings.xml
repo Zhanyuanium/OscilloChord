@@ -34,4 +34,17 @@
     <string name="settings_note_naming">Note naming</string>
     <string name="settings_note_sharp">Sharp (♯)</string>
     <string name="settings_note_flat">Flat (♭)</string>
+    <string name="interval_root">Root</string>
+    <string name="interval_minor_second">Minor 2nd</string>
+    <string name="interval_major_second">Major 2nd</string>
+    <string name="interval_minor_third">Minor 3rd</string>
+    <string name="interval_major_third">Major 3rd</string>
+    <string name="interval_perfect_fourth">Perfect 4th</string>
+    <string name="interval_tritone">Tritone</string>
+    <string name="interval_perfect_fifth">Perfect 5th</string>
+    <string name="interval_minor_sixth">Minor 6th</string>
+    <string name="interval_major_sixth">Major 6th</string>
+    <string name="interval_minor_seventh">Minor 7th</string>
+    <string name="interval_major_seventh">Major 7th</string>
+    <string name="unit_hz">Hz</string>
 </resources>

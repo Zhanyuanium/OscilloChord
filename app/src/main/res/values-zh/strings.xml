@@ -22,7 +22,7 @@
     <string name="settings_tuning_system">律制</string>
     <string name="settings_tuning_equal">十二平均律</string>
     <string name="settings_tuning_just">纯律</string>
-    <string name="settings_tuning_pythagorean">五度相生率</string>
+    <string name="settings_tuning_pythagorean">五度相生律</string>
     <string name="settings_trail_fade">轨迹渐隐</string>
     <string name="settings_trail_length">轨迹长度</string>
     <string name="settings_trail_short">短</string>
@@ -34,4 +34,17 @@
     <string name="settings_note_naming">音名标注</string>
     <string name="settings_note_sharp">升号 (♯)</string>
     <string name="settings_note_flat">降号 (♭)</string>
+    <string name="interval_root">根音</string>
+    <string name="interval_minor_second">小二度</string>
+    <string name="interval_major_second">大二度</string>
+    <string name="interval_minor_third">小三度</string>
+    <string name="interval_major_third">大三度</string>
+    <string name="interval_perfect_fourth">纯四度</string>
+    <string name="interval_tritone">增四度</string>
+    <string name="interval_perfect_fifth">纯五度</string>
+    <string name="interval_minor_sixth">小六度</string>
+    <string name="interval_major_sixth">大六度</string>
+    <string name="interval_minor_seventh">小七度</string>
+    <string name="interval_major_seventh">大七度</string>
+    <string name="unit_hz">Hz</string>
 </resources>

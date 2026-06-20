@@ -1,5 +1,6 @@
 package me.doubao.oscillochord.ui.info
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -13,6 +14,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import me.doubao.oscillochord.R
 import java.util.Locale
+
+@StringRes
+private fun intervalResId(semitones: Int): Int = when (semitones) {
+    -1 -> R.string.interval_root
+    0 -> R.string.interval_root
+    1 -> R.string.interval_minor_second
+    2 -> R.string.interval_major_second
+    3 -> R.string.interval_minor_third
+    4 -> R.string.interval_major_third
+    5 -> R.string.interval_perfect_fourth
+    6 -> R.string.interval_tritone
+    7 -> R.string.interval_perfect_fifth
+    8 -> R.string.interval_minor_sixth
+    9 -> R.string.interval_major_sixth
+    10 -> R.string.interval_minor_seventh
+    11 -> R.string.interval_major_seventh
+    else -> R.string.interval_root
+}
 
 @Composable
 fun InfoPanel(
@@ -71,14 +90,14 @@ fun InfoPanel(
                         else MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = note.intervalFromRoot,
+                        text = stringResource(intervalResId(note.intervalSemitones)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier.weight(0.25f),
                         textAlign = TextAlign.End
                     )
                     Text(
-                        text = "${"%.2f".format(Locale.ROOT, note.frequencyHz)}Hz",
+                        text = "${"%.2f".format(Locale.ROOT, note.frequencyHz)}${stringResource(R.string.unit_hz)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(0.4f),

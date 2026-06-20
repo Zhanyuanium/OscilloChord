@@ -17,7 +17,7 @@ data class NoteInfo(
     val midiNote: Int,
     val name: String,
     val frequencyHz: Double,
-    val intervalFromRoot: String,
+    val intervalSemitones: Int,  // pitch class distance from root, or -1 for root itself
     val isRoot: Boolean
 )
 
@@ -67,14 +67,14 @@ class InfoViewModel(
 
         val notes = sortedNotes.map { midi ->
             val semitonesFromRoot = midi - rootNote
-            val interval = if (midi == rootNote) "根音"
-            else PitchUtils.intervalName(PitchUtils.pitchClass(semitonesFromRoot))
+            val intervalSemitones = if (midi == rootNote) -1
+            else PitchUtils.intervalSemitones(semitonesFromRoot)
 
             NoteInfo(
                 midiNote = midi,
                 name = PitchUtils.midiNoteToName(midi, settings.noteNaming == NoteNamingSetting.FLAT),
                 frequencyHz = PitchUtils.midiNoteToFrequency(midi, settings.baseFrequency, settings.tuningSystem.system),
-                intervalFromRoot = interval,
+                intervalSemitones = intervalSemitones,
                 isRoot = midi == rootNote
             )
         }

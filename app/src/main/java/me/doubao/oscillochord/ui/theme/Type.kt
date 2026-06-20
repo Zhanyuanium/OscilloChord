@@ -14,7 +14,6 @@ val OscilloTypography = Typography(
         fontSize = 20.sp,
         lineHeight = 28.sp
     ),
-    // Note names — monospace
     titleMedium = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Medium,

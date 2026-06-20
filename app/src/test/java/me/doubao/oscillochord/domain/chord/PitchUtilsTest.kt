@@ -51,18 +51,25 @@ class PitchUtilsTest {
     }
 
     @Test
-    fun `intervalName returns correct names`() {
-        assertEquals("根音", PitchUtils.intervalName(0))
-        assertEquals("小二度", PitchUtils.intervalName(1))
-        assertEquals("大二度", PitchUtils.intervalName(2))
-        assertEquals("小三度", PitchUtils.intervalName(3))
-        assertEquals("大三度", PitchUtils.intervalName(4))
-        assertEquals("纯四度", PitchUtils.intervalName(5))
-        assertEquals("增四度", PitchUtils.intervalName(6))
-        assertEquals("纯五度", PitchUtils.intervalName(7))
-        assertEquals("小六度", PitchUtils.intervalName(8))
-        assertEquals("大六度", PitchUtils.intervalName(9))
-        assertEquals("小七度", PitchUtils.intervalName(10))
-        assertEquals("大七度", PitchUtils.intervalName(11))
+    fun `intervalSemitones returns correct pitch class distances`() {
+        assertEquals(0, PitchUtils.intervalSemitones(0))
+        assertEquals(1, PitchUtils.intervalSemitones(1))
+        assertEquals(2, PitchUtils.intervalSemitones(2))
+        assertEquals(3, PitchUtils.intervalSemitones(3))
+        assertEquals(4, PitchUtils.intervalSemitones(4))
+        assertEquals(5, PitchUtils.intervalSemitones(5))
+        assertEquals(6, PitchUtils.intervalSemitones(6))
+        assertEquals(7, PitchUtils.intervalSemitones(7))
+        assertEquals(8, PitchUtils.intervalSemitones(8))
+        assertEquals(9, PitchUtils.intervalSemitones(9))
+        assertEquals(10, PitchUtils.intervalSemitones(10))
+        assertEquals(11, PitchUtils.intervalSemitones(11))
+    }
+
+    @Test
+    fun `intervalSemitones wraps around for values above 11`() {
+        assertEquals(0, PitchUtils.intervalSemitones(12))
+        assertEquals(1, PitchUtils.intervalSemitones(13))
+        assertEquals(5, PitchUtils.intervalSemitones(17))
     }
 }
