@@ -1,6 +1,5 @@
 package me.doubao.oscillochord.domain.audio
 
-import kotlin.math.pow
 import me.doubao.oscillochord.domain.chord.TuningSystem
 
 class Oscillator(

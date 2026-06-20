@@ -1,5 +1,6 @@
 package me.doubao.oscillochord.ui.keyboard
 
+import me.doubao.oscillochord.domain.settings.NoteNamingSetting
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -27,7 +28,7 @@ class KeyboardStateTest {
         assertEquals(BlackKeyLayout.PIANO, copy.blackKeyLayout)
         assertTrue(copy.showNoteLabels)
         assertEquals(SlideMode.FOLLOW_KEYS, copy.slideMode)
-        assertEquals("SHARP", copy.noteNaming)
+        assertEquals(NoteNamingSetting.SHARP, copy.noteNaming)
     }
 
     @Test

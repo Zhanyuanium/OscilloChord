@@ -23,7 +23,7 @@ data class KeyboardState(
     val blackKeyLayout: BlackKeyLayout = BlackKeyLayout.PIANO,
     val showNoteLabels: Boolean = true,
     val slideMode: SlideMode = SlideMode.FOLLOW_KEYS,
-    val noteNaming: String = "SHARP"
+    val noteNaming: NoteNamingSetting = NoteNamingSetting.SHARP
 )
 
 class KeyboardViewModel(
@@ -44,7 +44,7 @@ class KeyboardViewModel(
                 setWaveform(s.waveform.waveform)
                 setBaseFrequency(s.baseFrequency)
                 setTuningSystem(s.tuningSystem.system)
-                setNoteNaming(s.noteNaming.name)
+                setNoteNaming(s.noteNaming)
             }
         }
     }
@@ -108,7 +108,7 @@ class KeyboardViewModel(
         audioEngine.setTuningSystem(system)
     }
 
-    fun setNoteNaming(naming: String) {
+    fun setNoteNaming(naming: NoteNamingSetting) {
         _state.update { it.copy(noteNaming = naming) }
     }
 

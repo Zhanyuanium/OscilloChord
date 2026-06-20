@@ -10,18 +10,18 @@ A real-time oscilloscope for musical chords on Android. Press keys on the virtua
 
 ## Features
 
-- **Virtual piano keyboard** — piano-style or equal-width layout, multi-touch with per-finger tracking, slide-to-follow or slide-to-shift-octave modes, optional note labels, configurable octave range
+- **Virtual piano keyboard** — piano-style or equal-width layout, multi-touch with per-finger tracking, slide-to-follow or slide-to-shift-octave modes, optional note labels with sharp/flat naming, configurable octave range
 - **Real-time oscilloscope** — rotation-projection Lissajous figures for any number of simultaneously played notes, N=1 shows waveform, N=2 shows classic Lissajous, N>=3 uses Scheme A equally-spaced angular projection, optional trail fade with configurable length
 - **Chord detection** — recognizes triads, sevenths, ninths, suspended, and added-note chords, displays note names, intervals, and frequencies with inversion-aware root detection
 - **Three tuning systems** — equal temperament (12-TET), just intonation (5-limit), and Pythagorean tuning, with configurable base frequency (415--466 Hz)
 - **Four waveforms** — sine, square, triangle, sawtooth
-- **MIDI input** — USB and Bluetooth MIDI device support
+- **MIDI input** — USB and Bluetooth MIDI device discovery (data receiving in development)
 - **Material You design** — dynamic color on Android 12+, dark theme, two layout modes (square for phones, wide for tablets and landscape)
 - **Chinese and English** — full i18n support
 
 ## Requirements
 
-- Android 14 (API 34) or later
+- Android 15 (API 35) or later
 - MIDI input requires a USB-OTG or Bluetooth MIDI device
 
 ## Build
@@ -61,7 +61,8 @@ app/src/main/java/me/doubao/oscillochord/
 
 | Component | Library |
 |-----------|---------|
-| UI | Jetpack Compose + Material 3 (BOM 2025.06) |
+| UI | Jetpack Compose + Material 3 (BOM 2026.05.01) |
+| DI | Koin 4.2.2 |
 | Audio | `android.media.AudioTrack` (no NDK) |
 | State | Kotlin StateFlow + Compose `collectAsStateWithLifecycle` |
 | Persistence | DataStore Preferences |

@@ -31,7 +31,7 @@ class OscilloscopeViewModel(
         activeNotes: Set<Int>,
         baseFrequency: Double,
         waveform: Waveform,
-        tuningSystem: me.doubao.oscillochord.domain.chord.TuningSystem = me.doubao.oscillochord.domain.chord.TuningSystem.EQUAL
+        tuningSystem: TuningSystem = TuningSystem.EQUAL
     ) {
         for (note in activeNotes) {
             if (!visualOscillators.containsKey(note)) {

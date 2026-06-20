@@ -22,7 +22,7 @@ class InfoViewModelTest {
         assertEquals(1, state.notes.size)
         assertEquals("C4", state.notes[0].name)
         assertTrue(state.notes[0].isRoot)
-        assertEquals("根音", state.notes[0].intervalFromRoot)
+        assertEquals(-1, state.notes[0].intervalSemitones)
     }
 
     @Test

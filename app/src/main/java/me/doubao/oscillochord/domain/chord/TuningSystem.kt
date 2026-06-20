@@ -1,9 +1,9 @@
 package me.doubao.oscillochord.domain.chord
 
-enum class TuningSystem(val displayName: String) {
-    EQUAL("十二平均律"),
-    JUST("纯律"),
-    PYTHAGOREAN("五度相生率");
+enum class TuningSystem {
+    EQUAL,
+    JUST,
+    PYTHAGOREAN;
 
     fun frequencyForMidi(midiNote: Int, baseFrequency: Double = 440.0): Double {
         val pc = Math.floorMod(midiNote, 12)

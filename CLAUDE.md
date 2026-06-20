@@ -17,12 +17,13 @@ MVVM + Clean Architecture. Package: `me.doubao.oscillochord`
 - **UI layer** (`ui/`): Compose + Material 3, ViewModels expose `StateFlow`, collected with `collectAsStateWithLifecycle`
 - **Domain layer** (`domain/`): AudioEngine, Oscillator, Waveform, ChordDetector, LissajousProjector, MidiInputManager
 - **Data layer** (`data/`): SettingsRepository (DataStore Preferences)
+- **DI** (`di/`): Koin modules, initialized in `OscilloChordApp`
 
 ## Key Constraints
 
-- minSdk 34, targetSdk 36, compileSdk 36
+- minSdk 35, targetSdk 37, compileSdk 37
 - Landscape-locked (`AndroidManifest.xml`: `screenOrientation="landscape"`)
-- Compose BOM 2025.06, Kotlin 2.0, Gradle 9.4.1, AGP 9.2.1
+- Compose BOM 2026.05.01, Kotlin 2.4.0, Gradle 9.6.0, AGP 9.2.1, Koin 4.2.2
 - No NDK — audio uses `android.media.AudioTrack`
 
 ## Critical Patterns
@@ -67,7 +68,7 @@ MVVM + Clean Architecture. Package: `me.doubao.oscillochord`
 ## Testing
 
 ```bash
-./gradlew :app:testDebugUnitTest  # unit tests (PitchUtils, Oscillator, AudioEngine, LissajousProjector, ChordDetector, TuningSystem)
+./gradlew :app:testDebugUnitTest  # unit tests (PitchUtils, Oscillator, AudioEngine, LissajousProjector, ChordDetector, TuningSystem, KeyboardState, InfoViewModel)
 ```
 
 UI changes must be manually verified on device. No Compose UI tests configured.
