@@ -84,8 +84,10 @@ private fun DrawScope.drawTrailFade(points: List<TrailPoint>, color: Color) {
     val chunkSize = 32
     val totalChunks = (points.size + chunkSize - 1) / chunkSize
     for (chunk in 0 until totalChunks) {
-        val chunkStart = chunk * chunkSize
-        val chunkEnd = minOf(chunkStart + chunkSize, points.size)
+        // Overlap consecutive chunks by 1 point so adjacent <path> segments
+        // remain visually continuous — no hairline gaps between chunks.
+        val chunkStart = if (chunk == 0) 0 else chunk * chunkSize - 1
+        val chunkEnd = minOf(chunk * chunkSize + chunkSize, points.size)
         if (chunkEnd - chunkStart < 2) continue
         val midIndex = (chunkStart + chunkEnd) / 2
         val alpha = if (points.size > 1) midIndex.toFloat() / (points.size - 1) else 1.0f
