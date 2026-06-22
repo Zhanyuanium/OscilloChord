@@ -1,3 +1,10 @@
-# 默认忽略的文件
+# =============================================================================
+# IDE — local developer state (do not share via version control)
+# =============================================================================
 /shelf/
 /workspace.xml
+/caches/
+/libraries/
+/modules.xml
+/navEditor.xml
+/assetWizardSettings.xml
