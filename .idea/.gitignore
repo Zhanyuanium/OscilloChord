@@ -8,3 +8,6 @@
 /modules.xml
 /navEditor.xml
 /assetWizardSettings.xml
+
+/appInsightsSettings.xml
+/deploymentTargetSelector.xml
