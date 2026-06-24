@@ -29,6 +29,8 @@ private val BLACK_KEY_DATA = listOf(0 to 1, 1 to 3, 3 to 6, 4 to 8, 5 to 10)
 
 private data class FlingRequest(val offset: Float, val velocityPxPerMs: Float)
 
+private enum class ScrollPhase { IDLE, DRAGGING, ANIMATING }
+
 private fun computeVelocity(samples: List<Pair<Long, Float>>): Float {
     if (samples.size < 2) return 0f
     val dtNs = samples.last().first - samples.first().first
@@ -50,8 +52,7 @@ fun PianoKeyboard(
     val primaryColor = MaterialTheme.colorScheme.primary
 
     var dragOffset by remember { mutableFloatStateOf(0f) }
-    var isDragging by remember { mutableStateOf(false) }
-    var isAnimating by remember { mutableStateOf(false) }
+    var scrollPhase by remember { mutableStateOf(ScrollPhase.IDLE) }
     var dragPointerId by remember { mutableStateOf(-1) }
     var canvasWidth by remember { mutableFloatStateOf(1f) }
     val scrollAnim = remember { Animatable(0f) }
@@ -66,17 +67,16 @@ fun PianoKeyboard(
         val req = pendingFling ?: return@LaunchedEffect
         val ow = octW()
         if (ow <= 0f) {
-            isDragging = false
+            scrollPhase = ScrollPhase.IDLE
             pendingFling = null
             return@LaunchedEffect
         }
         val projected = req.offset + req.velocityPxPerMs * 250f
         val snapTarget = (projected / ow).roundToInt() * ow
         scrollAnim.snapTo(req.offset)
-        // Switch from drag bridge to animation mode only AFTER snapTo
-        // so displayOffset transitions seamlessly.
-        isDragging = false
-        isAnimating = true
+        // Switch from drag to animation only AFTER snapTo
+        // so display uses scrollAnim.value at the correct position.
+        scrollPhase = ScrollPhase.ANIMATING
         pendingFling = null
         scrollAnim.animateTo(snapTarget,
             tween(durationMillis = 400, easing = EaseOutCubic),
@@ -85,15 +85,22 @@ fun PianoKeyboard(
         // Reset visual FIRST, then shift octave
         scrollAnim.snapTo(0f)
         dragOffset = 0f
-        isAnimating = false
+        scrollPhase = ScrollPhase.IDLE
         val absorbed = -(snapTarget / ow).roundToInt()
         if (absorbed != 0) onOctaveShift(absorbed)
     }
 
-    val displayOffset = when {
-        isDragging -> dragOffset
-        isAnimating -> scrollAnim.value
-        else -> 0f
+    fun visualOffset(): Float = when (scrollPhase) {
+        ScrollPhase.DRAGGING -> dragOffset
+        ScrollPhase.ANIMATING -> scrollAnim.value
+        ScrollPhase.IDLE -> 0f
+    }
+
+    fun extraOctaves(): Int {
+        val off = abs(visualOffset())
+        val ow = octW()
+        return if (ow > 0f && off > 1f) maxOf(1, (off / ow).toInt() + 1)
+        else if (scrollPhase != ScrollPhase.IDLE) 1 else 0
     }
 
     // Pre-created Paint objects for label rendering — colors set once, textSize set per call
@@ -106,12 +113,6 @@ fun PianoKeyboard(
     val blackKeyLabelPaint = remember {
         Paint().apply { color = 0xFFAAAAAA.toInt(); textAlign = Paint.Align.CENTER; isAntiAlias = true }
     }
-    fun extraOctaves(): Int {
-        val off = abs(displayOffset)
-        val ow = octW()
-        return if (ow > 0f && off > 1f) maxOf(1, (off / ow).toInt() + 1)
-        else if (isDragging || isAnimating) 1 else 0
-    }
 
     Canvas(
         modifier = modifier.fillMaxWidth()
@@ -121,25 +122,15 @@ fun PianoKeyboard(
                             val event = awaitPointerEvent()
                             for (pointer in event.changes) {
                                 val pid = pointer.id.value.toInt()
-                                // Read live state, not the snapshot val captured at compose time
-                                val liveOffset = when {
-                                    isDragging -> dragOffset
-                                    isAnimating -> scrollAnim.value
-                                    else -> 0f
-                                }
-                                fun liveExtra(): Int {
-                                    val off = abs(liveOffset)
-                                    val ow = octW()
-                                    return if (ow > 0f && off > 1f) maxOf(1, (off / ow).toInt() + 1)
-                                    else if (isDragging || isAnimating) 1 else 0
-                                }
+                                val offset = visualOffset()
+                                val ext = extraOctaves()
                                 when {
                                     pointer.pressed && !pointer.previousPressed -> {
-                                        if (!isDragging && !isAnimating) dragOffset = 0f
+                                        if (scrollPhase == ScrollPhase.IDLE) dragOffset = 0f
                                         hitTest(
-                                            pointer.position.x - liveOffset, pointer.position.y,
+                                            pointer.position.x - offset, pointer.position.y,
                                             size.width.toFloat(), size.height.toFloat(),
-                                            state, liveExtra()
+                                            state, ext
                                         )?.let { pointerToNote[pid] = it; onNoteOn(it) }
                                     }
                                     pointer.pressed && pointer.previousPressed -> {
@@ -147,9 +138,9 @@ fun PianoKeyboard(
                                         when (state.slideMode) {
                                             SlideMode.FOLLOW_KEYS -> {
                                                 val cur = hitTest(
-                                                    pointer.position.x - liveOffset, pointer.position.y,
+                                                    pointer.position.x - offset, pointer.position.y,
                                                     size.width.toFloat(), size.height.toFloat(),
-                                                    state, liveExtra()
+                                                    state, ext
                                                 )
                                                 if (cur != null && cur != prev) {
                                                     onNoteSlide(prev, cur); pointerToNote[pid] = cur
@@ -161,7 +152,7 @@ fun PianoKeyboard(
                                                     dragOffset += pointer.position.x - pointer.previousPosition.x
                                                     velocitySamples.add(System.nanoTime() to pointer.position.x - pointer.previousPosition.x)
                                                     while (velocitySamples.size > 20) velocitySamples.removeAt(0)
-                                                    isDragging = true
+                                                    scrollPhase = ScrollPhase.DRAGGING
                                                 }
                                             }
                                         }
@@ -172,9 +163,9 @@ fun PianoKeyboard(
                                     }
                                 }
                             }
-                            if (isDragging && event.changes.all { !it.pressed }) {
-                                // Keep isDragging=true as a bridge — avoid displayOffset
-                                // falling to 0 before the LaunchedEffect takes over.
+                            if (scrollPhase == ScrollPhase.DRAGGING && event.changes.all { !it.pressed }) {
+                                // scrollPhase stays DRAGGING until LaunchedEffect switches
+                                // to ANIMATING, keeping visualOffset() stable across the gap.
                                 dragPointerId = -1
                                 val ow = octW()
                                 if (ow > 0f) {
@@ -183,7 +174,7 @@ fun PianoKeyboard(
                                     pendingFling = FlingRequest(dragOffset, vel)
                                     flingCounter++
                                 } else {
-                                    isDragging = false
+                                    scrollPhase = ScrollPhase.IDLE
                                     dragOffset = 0f
                                 }
                             }
@@ -193,7 +184,7 @@ fun PianoKeyboard(
         ) {
             canvasWidth = size.width
             val ext = extraOctaves()
-            withTransform({ translate(left = displayOffset) }) {
+            withTransform({ translate(left = visualOffset()) }) {
                 if (state.blackKeyLayout == BlackKeyLayout.EQUAL_WIDTH) drawEqualWidthKeys(state, ext, primaryColor, whiteKeyLabelPaint, activeKeyLabelPaint, blackKeyLabelPaint)
                 else drawPianoKeys(state, ext, primaryColor, whiteKeyLabelPaint, activeKeyLabelPaint, blackKeyLabelPaint)
             }
