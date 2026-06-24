@@ -64,13 +64,20 @@ fun PianoKeyboard(
     LaunchedEffect(flingCounter) {
         if (flingCounter == 0) return@LaunchedEffect
         val req = pendingFling ?: return@LaunchedEffect
-        pendingFling = null
-        isAnimating = true
         val ow = octW()
-        if (ow <= 0f) { isAnimating = false; return@LaunchedEffect }
+        if (ow <= 0f) {
+            isDragging = false
+            pendingFling = null
+            return@LaunchedEffect
+        }
         val projected = req.offset + req.velocityPxPerMs * 250f
         val snapTarget = (projected / ow).roundToInt() * ow
         scrollAnim.snapTo(req.offset)
+        // Switch from drag bridge to animation mode only AFTER snapTo
+        // so displayOffset transitions seamlessly.
+        isDragging = false
+        isAnimating = true
+        pendingFling = null
         scrollAnim.animateTo(snapTarget,
             tween(durationMillis = 400, easing = EaseOutCubic),
             initialVelocity = req.velocityPxPerMs
@@ -166,17 +173,17 @@ fun PianoKeyboard(
                                 }
                             }
                             if (isDragging && event.changes.all { !it.pressed }) {
-                                isDragging = false
+                                // Keep isDragging=true as a bridge — avoid displayOffset
+                                // falling to 0 before the LaunchedEffect takes over.
                                 dragPointerId = -1
                                 val ow = octW()
-                                val vel = computeVelocity(velocitySamples)
-                                velocitySamples.clear()
-                                if (ow > 0f && abs(vel) > 0.1f && abs(dragOffset) > ow * 0.15f) {
+                                if (ow > 0f) {
+                                    val vel = computeVelocity(velocitySamples)
+                                    velocitySamples.clear()
                                     pendingFling = FlingRequest(dragOffset, vel)
                                     flingCounter++
                                 } else {
-                                    val delta = -(dragOffset / ow).roundToInt()
-                                    if (delta != 0) onOctaveShift(delta)
+                                    isDragging = false
                                     dragOffset = 0f
                                 }
                             }
